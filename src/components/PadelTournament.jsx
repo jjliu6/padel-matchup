@@ -13,7 +13,7 @@ import * as XLSX from 'xlsx';
 import {
   Trophy, Users, Home, Crown, Plus, Minus, Coffee, Swords, Flag, Check, Medal,
   ArrowRight, ListOrdered, FileSpreadsheet, LayoutGrid, Monitor, X,
-  ChevronLeft, ChevronRight, Shuffle,
+  ChevronLeft, ChevronRight, Shuffle, Share2, Copy, Eye, Loader2, CloudOff, Cloud,
 } from 'lucide-react';
 
 const BYE = '__BYE__';
