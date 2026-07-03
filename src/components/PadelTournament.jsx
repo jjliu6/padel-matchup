@@ -773,7 +773,7 @@ function ModeCard({ active, onClick, zh, en, desc }) {
 /* ============ 固定搭档：循环赛页 ============ */
 function GroupView(p) {
   const { mode, schedules, results, activeGroup, setActiveGroup, activeRound, setActiveRound, saveScore, clearScore,
-    standingsSingle, standingsA, standingsB, advancePerGroup, progress, groupDone, defaultSets, onGoKnockout } = p;
+    standingsSingle, standingsA, standingsB, advancePerGroup, progress, groupDone, defaultSets, canEdit = true, onGoKnockout } = p;
   const rounds = schedules[activeGroup] || [];
   const isDouble = mode === 'double';
   const switchGroup = (g) => { setActiveGroup(g); setActiveRound(0); };
@@ -790,7 +790,7 @@ function GroupView(p) {
         <div className="space-y-3">
           {rounds[activeRound]?.map((m, mi) => m.bye
             ? <ByeRow key={mi} name={m.bye} />
-            : <ScoreCard key={mi} aName={m.a} bName={m.b} res={results[key(activeGroup, activeRound, mi)]} defaultSets={defaultSets} onSave={(sets) => saveScore(activeGroup, activeRound, mi, sets)} onClear={() => clearScore(activeGroup, activeRound, mi)} />)}
+            : <ScoreCard key={mi} aName={m.a} bName={m.b} res={results[key(activeGroup, activeRound, mi)]} defaultSets={defaultSets} readOnly={!canEdit} onSave={(sets) => saveScore(activeGroup, activeRound, mi, sets)} onClear={() => clearScore(activeGroup, activeRound, mi)} />)}
         </div>
         {groupDone
           ? <button onClick={onGoKnockout} className="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-bold rounded-xl py-3.5 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30 transition-all"><Flag size={18} /> 进入淘汰赛 <span className="text-xs font-medium opacity-80">Go to Knockout</span></button>
@@ -807,7 +807,7 @@ function GroupView(p) {
 }
 
 /* ============ 非固定搭档（Americano）页 ============ */
-function AmericanoView({ amSchedule, amResults, amRound, setAmRound, saveAm, clearAm, leaderboard, progress }) {
+function AmericanoView({ amSchedule, amResults, amRound, setAmRound, saveAm, clearAm, leaderboard, progress, canEdit = true }) {
   const rd = amSchedule[amRound];
   const done = progress.total > 0 && progress.done === progress.total;
   return (
@@ -817,7 +817,7 @@ function AmericanoView({ amSchedule, amResults, amRound, setAmRound, saveAm, cle
         <RoundTabs count={amSchedule.length} active={amRound} onPick={setAmRound} isDone={(ri) => amSchedule[ri].courts.every((_, ci) => amResults[`${ri}-${ci}`]?.done)} />
         <div className="space-y-3">
           {rd?.courts.map((c, ci) => (
-            <CourtCard key={ci} label={`球场 ${ci + 1} · Court ${ci + 1}`} court={c} res={amResults[`${amRound}-${ci}`]} onSave={(s1, s2) => saveAm(amRound, ci, s1, s2)} onClear={() => clearAm(amRound, ci)} />
+            <CourtCard key={ci} label={`球场 ${ci + 1} · Court ${ci + 1}`} court={c} res={amResults[`${amRound}-${ci}`]} readOnly={!canEdit} onSave={(s1, s2) => saveAm(amRound, ci, s1, s2)} onClear={() => clearAm(amRound, ci)} />
           ))}
           {rd?.byes.length > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-2 flex-wrap">
@@ -858,12 +858,12 @@ function AmericanoView({ amSchedule, amResults, amRound, setAmRound, saveAm, cle
   );
 }
 
-function CourtCard({ label, court, res, onSave, onClear }) {
+function CourtCard({ label, court, res, onSave, onClear, readOnly = false }) {
   const [s1, setS1] = useState(res ? String(res.s1) : '');
   const [s2, setS2] = useState(res ? String(res.s2) : '');
   const done = res?.done;
   const win1 = done && res.s1 > res.s2, win2 = done && res.s2 > res.s1;
-  const commit = () => { if (s1 !== '' || s2 !== '') onSave(parseInt(s1 || '0', 10) || 0, parseInt(s2 || '0', 10) || 0); };
+  const commit = () => { if (readOnly) return; if (s1 !== '' || s2 !== '') onSave(parseInt(s1 || '0', 10) || 0, parseInt(s2 || '0', 10) || 0); };
   const team = (arr, win) => <span className={`font-medium ${win ? 'text-blue-800' : 'text-slate-700'}`}>{win && <Crown size={13} className="inline mr-1 text-amber-400 -mt-0.5" />}{arr.join(' & ')}</span>;
   return (
     <div className={`rounded-xl border p-4 bg-white shadow-sm shadow-slate-200/50 ${done ? 'border-emerald-200' : 'border-slate-200'}`}>
@@ -874,25 +874,25 @@ function CourtCard({ label, court, res, onSave, onClear }) {
           <div className="text-xl font-bold tabular-nums shrink-0"><span className={win1 ? 'text-emerald-600' : 'text-slate-400'}>{res.s1}</span><span className="text-slate-300 mx-1">:</span><span className={win2 ? 'text-emerald-600' : 'text-slate-400'}>{res.s2}</span></div>
         ) : (
           <div className="flex items-center gap-1 shrink-0">
-            <input value={s1} onChange={(e) => setS1(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" placeholder="0" className="w-12 text-center border border-slate-300 rounded-lg py-1.5 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input value={s1} onChange={(e) => !readOnly && setS1(e.target.value.replace(/[^0-9]/g, ''))} disabled={readOnly} inputMode="numeric" placeholder="0" className="w-12 text-center border border-slate-300 rounded-lg py-1.5 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400" />
             <span className="text-slate-300">:</span>
-            <input value={s2} onChange={(e) => setS2(e.target.value.replace(/[^0-9]/g, ''))} inputMode="numeric" placeholder="0" className="w-12 text-center border border-slate-300 rounded-lg py-1.5 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input value={s2} onChange={(e) => !readOnly && setS2(e.target.value.replace(/[^0-9]/g, ''))} disabled={readOnly} inputMode="numeric" placeholder="0" className="w-12 text-center border border-slate-300 rounded-lg py-1.5 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400" />
           </div>
         )}
         <div className="flex-1 min-w-0 truncate text-right">{team(court.t2, win2)}</div>
       </div>
       <div className="mt-3 flex items-center justify-center gap-3 text-sm">
-        {done ? <><span className="flex items-center gap-1 text-emerald-600"><Check size={14} /> 已记录 Saved</span><button onClick={onClear} className="text-slate-400 hover:text-blue-700">修改 Edit</button></>
-          : <button onClick={commit} className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-4 py-1.5 rounded-lg">记录比分 · Save</button>}
+        {done ? <><span className="flex items-center gap-1 text-emerald-600"><Check size={14} /> 已记录 Saved</span>{!readOnly && <button onClick={onClear} className="text-slate-400 hover:text-blue-700">修改 Edit</button>}</>
+          : !readOnly && <button onClick={commit} className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-4 py-1.5 rounded-lg">记录比分 · Save</button>}
       </div>
     </div>
   );
 }
 
 /* ============ 淘汰赛页 ============ */
-function KnockoutView({ bracket, ko, setKo, defaultSets, onBack }) {
-  const save = (k, sets) => setKo((p) => ({ ...p, [k]: { sets, done: true } }));
-  const clear = (k) => setKo((p) => { const n = { ...p }; delete n[k]; return n; });
+function KnockoutView({ bracket, ko, setKo, defaultSets, canEdit = true, onBack }) {
+  const save = (k, sets) => { if (!canEdit) return; setKo((p) => ({ ...p, [k]: { sets, done: true } })); };
+  const clear = (k) => { if (!canEdit) return; setKo((p) => { const n = { ...p }; delete n[k]; return n; }); };
   if (bracket.kind === 'none') return <div className="text-center text-slate-500"><button onClick={onBack} className="text-sm hover:text-blue-700">← 返回 Back</button><p className="mt-6">出线队伍不足，无法组织淘汰赛。<br /><span className="text-xs text-slate-400">Not enough qualifiers for knockout.</span></p></div>;
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -901,20 +901,20 @@ function KnockoutView({ bracket, ko, setKo, defaultSets, onBack }) {
         <>
           <SectionTitle icon={<Swords size={20} />} zh="半决赛" en="Semifinals" sub="胜者进决赛，负者争季军 · Winners → final, losers → 3rd" />
           <div className="grid sm:grid-cols-2 gap-3">
-            <KOMatch label={`半决赛 A · ${bracket.sf1.aLabel} vs ${bracket.sf1.bLabel}`} aName={bracket.sf1.a} bName={bracket.sf1.b} res={ko.sf1} defaultSets={defaultSets} onSave={(s) => save('sf1', s)} onClear={() => clear('sf1')} />
-            <KOMatch label={`半决赛 B · ${bracket.sf2.aLabel} vs ${bracket.sf2.bLabel}`} aName={bracket.sf2.a} bName={bracket.sf2.b} res={ko.sf2} defaultSets={defaultSets} onSave={(s) => save('sf2', s)} onClear={() => clear('sf2')} />
+            <KOMatch label={`半决赛 A · ${bracket.sf1.aLabel} vs ${bracket.sf1.bLabel}`} aName={bracket.sf1.a} bName={bracket.sf1.b} res={ko.sf1} defaultSets={defaultSets} readOnly={!canEdit} onSave={(s) => save('sf1', s)} onClear={() => clear('sf1')} />
+            <KOMatch label={`半决赛 B · ${bracket.sf2.aLabel} vs ${bracket.sf2.bLabel}`} aName={bracket.sf2.a} bName={bracket.sf2.b} res={ko.sf2} defaultSets={defaultSets} readOnly={!canEdit} onSave={(s) => save('sf2', s)} onClear={() => clear('sf2')} />
           </div>
           <SectionTitle icon={<Flag size={20} />} zh="决赛 & 季军赛" en="Final & 3rd Place" sub="由半决赛结果自动填入 · Auto-filled from semis" />
           <div className="grid sm:grid-cols-2 gap-3">
-            <KOMatch label="🏆 决赛 · Final" aName={bracket.final.a} bName={bracket.final.b} res={ko.final} defaultSets={defaultSets} onSave={(s) => save('final', s)} onClear={() => clear('final')} pending={bracket.final.pending} pendingText="等待半决赛结束 · Awaiting semifinals" big />
-            <KOMatch label="🥉 季军赛 · 3rd Place" aName={bracket.third.a} bName={bracket.third.b} res={ko.third} defaultSets={defaultSets} onSave={(s) => save('third', s)} onClear={() => clear('third')} pending={bracket.third.pending} pendingText="等待半决赛结束 · Awaiting semifinals" />
+            <KOMatch label="🏆 决赛 · Final" aName={bracket.final.a} bName={bracket.final.b} res={ko.final} defaultSets={defaultSets} readOnly={!canEdit} onSave={(s) => save('final', s)} onClear={() => clear('final')} pending={bracket.final.pending} pendingText="等待半决赛结束 · Awaiting semifinals" big />
+            <KOMatch label="🥉 季军赛 · 3rd Place" aName={bracket.third.a} bName={bracket.third.b} res={ko.third} defaultSets={defaultSets} readOnly={!canEdit} onSave={(s) => save('third', s)} onClear={() => clear('third')} pending={bracket.third.pending} pendingText="等待半决赛结束 · Awaiting semifinals" />
           </div>
         </>
       )}
       {bracket.kind === 'final' && (
         <>
           <SectionTitle icon={<Flag size={20} />} zh="总决赛" en="Grand Final" sub={`${bracket.final.aLabel} vs ${bracket.final.bLabel}`} />
-          <KOMatch label="🏆 决赛 · Final" aName={bracket.final.a} bName={bracket.final.b} res={ko.final} defaultSets={defaultSets} onSave={(s) => save('final', s)} onClear={() => clear('final')} big />
+          <KOMatch label="🏆 决赛 · Final" aName={bracket.final.a} bName={bracket.final.b} res={ko.final} defaultSets={defaultSets} readOnly={!canEdit} onSave={(s) => save('final', s)} onClear={() => clear('final')} big />
         </>
       )}
       {bracket.champion && <ChampionBlock champ={bracket.champion} res={ko.final} runnerUp={bracket.runnerUp} third={bracket.thirdPlace} />}
@@ -964,25 +964,25 @@ function RoundTabs({ count, active, onPick, isDone }) {
 }
 function ByeRow({ name }) { return <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3"><Coffee size={18} className="text-amber-600" /><span className="font-medium text-amber-800">{name}</span><span className="text-sm text-amber-600">本轮轮空 · Bye</span></div>; }
 
-function KOMatch({ label, aName, bName, res, onSave, onClear, pending, pendingText, big, defaultSets }) {
+function KOMatch({ label, aName, bName, res, onSave, onClear, pending, pendingText, big, defaultSets, readOnly = false }) {
   return (
     <div className="space-y-1.5">
       {label && <div className="text-xs font-medium text-slate-500">{label}</div>}
       {pending ? <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center text-sm text-slate-400">{pendingText || '待定'}</div>
-        : <ScoreCard key={`${aName}-${bName}`} aName={aName} bName={bName} res={res} defaultSets={defaultSets} onSave={onSave} onClear={onClear} big />}
+        : <ScoreCard key={`${aName}-${bName}`} aName={aName} bName={bName} res={res} defaultSets={defaultSets} readOnly={readOnly} onSave={onSave} onClear={onClear} big />}
     </div>
   );
 }
 
-function ScoreCard({ aName, bName, res, onSave, onClear, big, defaultSets = 1 }) {
+function ScoreCard({ aName, bName, res, onSave, onClear, big, defaultSets = 1, readOnly = false }) {
   const init = res?.sets?.length ? res.sets.map((s) => ({ a: String(s.a), b: String(s.b) })) : Array.from({ length: defaultSets }, () => ({ a: '', b: '' }));
   const [sets, setSets] = useState(init);
   const done = res?.done;
   const o = done ? outcome(res) : null;
-  const setVal = (i, side, v) => setSets((p) => p.map((s, idx) => (idx === i ? { ...s, [side]: v.replace(/[^0-9]/g, '') } : s)));
-  const addSet = () => setSets((p) => (p.length < 3 ? [...p, { a: '', b: '' }] : p));
-  const removeSet = (i) => setSets((p) => (p.length > 1 ? p.filter((_, idx) => idx !== i) : p));
-  const commit = () => { const parsed = sets.filter((s) => s.a !== '' || s.b !== '').map((s) => ({ a: parseInt(s.a || '0', 10) || 0, b: parseInt(s.b || '0', 10) || 0 })); if (parsed.length) onSave(parsed); };
+  const setVal = (i, side, v) => { if (!readOnly) setSets((p) => p.map((s, idx) => (idx === i ? { ...s, [side]: v.replace(/[^0-9]/g, '') } : s))); };
+  const addSet = () => { if (!readOnly) setSets((p) => (p.length < 3 ? [...p, { a: '', b: '' }] : p)); };
+  const removeSet = (i) => { if (!readOnly) setSets((p) => (p.length > 1 ? p.filter((_, idx) => idx !== i) : p)); };
+  const commit = () => { if (readOnly) return; const parsed = sets.filter((s) => s.a !== '' || s.b !== '').map((s) => ({ a: parseInt(s.a || '0', 10) || 0, b: parseInt(s.b || '0', 10) || 0 })); if (parsed.length) onSave(parsed); };
   return (
     <div className={`rounded-xl border p-4 bg-white shadow-sm shadow-slate-200/50 ${done ? 'border-emerald-200' : 'border-slate-200'}`}>
       <div className="flex items-center justify-between gap-2 mb-2">
@@ -993,21 +993,21 @@ function ScoreCard({ aName, bName, res, onSave, onClear, big, defaultSets = 1 })
         <TeamSide name={bName} win={o?.winner === 'b'} align="right" />
       </div>
       {done ? (
-        <div className="flex items-center justify-center gap-3 text-sm"><span className="flex items-center gap-1 text-emerald-600"><Check size={14} /> 已记录 Saved</span><button onClick={onClear} className="text-slate-400 hover:text-blue-700">修改 Edit</button></div>
+        <div className="flex items-center justify-center gap-3 text-sm"><span className="flex items-center gap-1 text-emerald-600"><Check size={14} /> 已记录 Saved</span>{!readOnly && <button onClick={onClear} className="text-slate-400 hover:text-blue-700">修改 Edit</button>}</div>
       ) : (
         <div className="space-y-1.5">
           {sets.map((s, i) => (
             <div key={i} className="flex items-center justify-center gap-2">
               <span className="w-16 text-right text-xs text-slate-400">第 {i + 1} 盘 · Set {i + 1}</span>
-              <input value={s.a} onChange={(e) => setVal(i, 'a', e.target.value)} inputMode="numeric" placeholder="0" className="w-12 text-center border border-slate-300 rounded-lg py-1.5 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input value={s.a} onChange={(e) => setVal(i, 'a', e.target.value)} disabled={readOnly} inputMode="numeric" placeholder="0" className="w-12 text-center border border-slate-300 rounded-lg py-1.5 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400" />
               <span className="text-slate-300">:</span>
-              <input value={s.b} onChange={(e) => setVal(i, 'b', e.target.value)} inputMode="numeric" placeholder="0" className="w-12 text-center border border-slate-300 rounded-lg py-1.5 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              {sets.length > 1 ? <button onClick={() => removeSet(i)} title="删除此盘" className="text-slate-300 hover:text-rose-500"><X size={14} /></button> : <span className="w-3.5" />}
+              <input value={s.b} onChange={(e) => setVal(i, 'b', e.target.value)} disabled={readOnly} inputMode="numeric" placeholder="0" className="w-12 text-center border border-slate-300 rounded-lg py-1.5 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400" />
+              {!readOnly && sets.length > 1 ? <button onClick={() => removeSet(i)} title="删除此盘" className="text-slate-300 hover:text-rose-500"><X size={14} /></button> : <span className="w-3.5" />}
             </div>
           ))}
           <div className="flex items-center justify-center gap-3 pt-1">
-            {sets.length < 3 && <button onClick={addSet} className="text-xs text-blue-700 hover:text-blue-900 flex items-center gap-0.5"><Plus size={13} /> 加一盘 Add set</button>}
-            <button onClick={commit} className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 py-1.5 rounded-lg">记录比分 · Save</button>
+            {!readOnly && sets.length < 3 && <button onClick={addSet} className="text-xs text-blue-700 hover:text-blue-900 flex items-center gap-0.5"><Plus size={13} /> 加一盘 Add set</button>}
+            {!readOnly && <button onClick={commit} className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 py-1.5 rounded-lg">记录比分 · Save</button>}
           </div>
         </div>
       )}
