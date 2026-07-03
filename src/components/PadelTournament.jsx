@@ -452,7 +452,7 @@ export default function PadelTournament() {
           <div className="bg-amber-100 border-b border-amber-300 text-amber-900 text-xs sm:text-sm">
             <div className="max-w-5xl mx-auto px-4 py-2 flex items-center gap-2">
               <Eye size={14} className="shrink-0" />
-              <span className="flex-1">只读观看模式 · 每 6 秒自动刷新 <span className="opacity-70">Read-only view · auto-refresh</span></span>
+              <span className="flex-1">只读观看模式 · 即时同步 <span className="opacity-70">Read-only view · live</span></span>
             </div>
           </div>
         )}
