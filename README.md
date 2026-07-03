@@ -14,7 +14,7 @@ Free hosted version: [padel-matchup.philosophie.ai](https://padel-matchup.philos
 - **Big-screen mode** for fixtures, standings, leaderboards, and brackets at the venue.
 - **Local persistence** through `localStorage` before publishing to the cloud.
 - **Excel export** for fixtures, scores, standings, and knockout results.
-- **Bilingual UI** with Chinese-first labels and concise English helpers.
+- **Trilingual UI** — bilingual Chinese/English by default at `/`, plus dedicated English-only (`/en`) and Spanish-only (`/es`) interfaces, switchable from the header language menu.
 
 ## Tech stack
 
@@ -38,6 +38,14 @@ Padel Matchup 是一个面向板式网球赛事组织者的开源工具，支持
 1. 已选择并提交开源协议，本仓库当前使用 MIT License。
 2. `.env.local` 不要提交到仓库，公开配置请参考 `.env.example`。
 3. 发布前至少运行 `bun run lint`、`bun run typecheck`、`bun run build`。
+
+## Resumen en español
+
+Padel Matchup es una herramienta de código abierto para organizar torneos de pádel, uno de los deportes de raqueta con más crecimiento en España y Latinoamérica. Genera calendarios de fase de grupos, rotaciones Americano y cuadros de eliminatoria, guarda los resultados en tiempo real, muestra la clasificación en una pantalla grande para el club y exporta todo a Excel.
+
+Versión gratuita en línea (interfaz 100% en español): [padel-matchup.philosophie.ai/es](https://padel-matchup.philosophie.ai/es/)
+
+El proyecto está licenciado bajo MIT (ver [LICENSE](./LICENSE)); el nombre "Padel Matchup" y la marca de Philosophie AI quedan fuera de esa licencia. Para dudas o despliegues personalizados: [junjie@philosophie.ai](mailto:junjie@philosophie.ai).
 
 ## Getting started
 
