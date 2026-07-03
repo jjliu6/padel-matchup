@@ -503,24 +503,24 @@ export default function PadelTournament() {
 
       <div>
         <header className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 text-white shadow-lg shadow-blue-900/20 border-b-2 border-amber-400/80">
-          <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5 min-w-0">
+          <div className="max-w-5xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
               <div className="bg-amber-400 text-blue-900 rounded-xl p-2 shrink-0 shadow-md shadow-amber-400/30"><Trophy size={20} /></div>
               <div className="min-w-0">
-                <h1 className="text-lg font-black tracking-tight truncate leading-none">{title}</h1>
-                <div className="text-[10px] text-amber-300/80 tracking-[0.25em] uppercase mt-0.5">Padel Tournament</div>
+                <h1 className="text-base sm:text-lg font-black tracking-tight truncate leading-none">{title}</h1>
+                <div className="hidden sm:block text-[10px] text-amber-300/80 tracking-[0.25em] uppercase mt-0.5">Padel Tournament</div>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              {stage !== 'setup' && <button onClick={() => setShowBig(true)} className="flex items-center gap-1 text-sm bg-amber-400 text-blue-900 hover:bg-amber-300 px-3 py-1.5 rounded-lg font-semibold shadow-sm shadow-amber-400/30 transition-colors"><Monitor size={15} /> 大屏<span className="hidden sm:inline text-[10px] font-normal opacity-70 ml-0.5">Screen</span></button>}
+            <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+              {stage !== 'setup' && <button onClick={() => setShowBig(true)} title="大屏 / Big screen" className="flex items-center gap-1 text-sm bg-amber-400 text-blue-900 hover:bg-amber-300 px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold shadow-sm shadow-amber-400/30 transition-colors"><Monitor size={15} /> <span className="hidden xs:inline sm:inline">大屏</span><span className="hidden sm:inline text-[10px] font-normal opacity-70 ml-0.5">Screen</span></button>}
               {stage !== 'setup' && !readOnly && (
                 cloudTokens?.edit_token
                   ? <button onClick={() => setShowShare(true)} title="分享 / Share" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Share2 size={15} /> <SyncBadge status={syncStatus} /></button>
-                  : <button onClick={handlePublish} disabled={publishing} title="发布并生成分享链接 / Publish & share" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50">{publishing ? <Loader2 size={15} className="animate-spin" /> : <Share2 size={15} />} 分享<span className="hidden sm:inline text-[10px] font-normal opacity-70 ml-0.5">Share</span></button>
+                  : <button onClick={handlePublish} disabled={publishing} title="发布并生成分享链接 / Publish & share" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50">{publishing ? <Loader2 size={15} className="animate-spin" /> : <Share2 size={15} />} <span className="hidden sm:inline">分享</span><span className="hidden sm:inline text-[10px] font-normal opacity-70 ml-0.5">Share</span></button>
               )}
-              {stage !== 'setup' && <button onClick={() => exportToExcel(exportModel)} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><FileSpreadsheet size={15} /> Excel</button>}
-              {stage !== 'setup' && <button onClick={goHome} title="返回设置页（保留数据）/ Back to setup (keeps data)" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Home size={15} /> 首页</button>}
-              {!readOnly && <button onClick={() => setConfirmNew(true)} title="开始一场全新赛事（清空所有数据）/ Start new tournament (clears all)" className="flex items-center gap-1 text-sm bg-rose-500/90 hover:bg-rose-500 text-white px-2.5 py-1.5 rounded-lg transition-colors"><Plus size={15} /> 新建<span className="hidden sm:inline text-[10px] font-normal opacity-80 ml-0.5">New</span></button>}
+              {stage !== 'setup' && <button onClick={() => exportToExcel(exportModel)} title="导出 Excel / Export" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><FileSpreadsheet size={15} /> <span className="hidden sm:inline">Excel</span></button>}
+              {stage !== 'setup' && <button onClick={goHome} title="返回设置页（保留数据）/ Back to setup (keeps data)" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Home size={15} /> <span className="hidden sm:inline">首页</span></button>}
+              {!readOnly && <button onClick={() => setConfirmNew(true)} title="开始一场全新赛事（清空所有数据）/ Start new tournament (clears all)" className="flex items-center gap-1 text-sm bg-rose-500/90 hover:bg-rose-500 text-white px-2.5 py-1.5 rounded-lg transition-colors"><Plus size={15} /> <span className="hidden sm:inline">新建</span><span className="hidden sm:inline text-[10px] font-normal opacity-80 ml-0.5">New</span></button>}
             </div>
           </div>
         </header>
