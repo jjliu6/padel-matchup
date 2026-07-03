@@ -457,8 +457,13 @@ export default function PadelTournament() {
       ? [{ g: 'A', name: 'A 组 · Group A', rounds: schedules.A || [], standings: standingsA, qc: advancePerGroup }, { g: 'B', name: 'B 组 · Group B', rounds: schedules.B || [], standings: standingsB, qc: advancePerGroup }]
       : [];
 
+  if (!mounted) {
+    return <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100" aria-hidden />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-800 font-sans">
+
       <div>
         <header className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 text-white shadow-lg shadow-blue-900/20 border-b-2 border-amber-400/80">
           <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-2">
