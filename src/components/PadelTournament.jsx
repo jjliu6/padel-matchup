@@ -513,6 +513,12 @@ function SyncBadge({ status }) {
 function ShareModal({ tokens, onClose }) {
   const { viewUrl, editUrl } = buildShareUrls({ view: tokens.view_token, edit: tokens.edit_token });
   const [copied, setCopied] = useState('');
+  const [qrDataUrl, setQrDataUrl] = useState('');
+  useEffect(() => {
+    if (!viewUrl) return;
+    QRCode.toDataURL(viewUrl, { width: 512, margin: 1, color: { dark: '#0f172a', light: '#ffffff' } })
+      .then(setQrDataUrl).catch(() => setQrDataUrl(''));
+  }, [viewUrl]);
   const copy = async (label, text) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -521,10 +527,20 @@ function ShareModal({ tokens, onClose }) {
     } catch { /* ignore */ }
   };
   return (
-    <Modal onClose={onClose}>
-      <div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="font-semibold text-lg mb-0.5 flex items-center gap-2"><Share2 size={18} className="text-blue-600" /> 分享比赛</div>
-        <div className="text-xs text-slate-400 uppercase tracking-wider mb-4">Share this tournament</div>
+        <div className="text-xs text-slate-400 uppercase tracking-wider mb-4">Share this tournament · 实时同步 Live</div>
+
+        {qrDataUrl && (
+          <div className="mb-4 flex flex-col items-center bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <img src={qrDataUrl} alt="QR code" className="w-48 h-48" />
+            <div className="text-xs text-slate-500 mt-2 text-center">现场扫码看大屏 · Scan to watch live</div>
+            {qrDataUrl && (
+              <a href={qrDataUrl} download="padel-tournament-qr.png" className="text-[11px] text-blue-600 hover:text-blue-800 mt-1">下载二维码 Download QR</a>
+            )}
+          </div>
+        )}
 
         <div className="mb-4">
           <div className="text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5"><Eye size={12} /> 只读观看 · View-only link</div>
@@ -548,7 +564,7 @@ function ShareModal({ tokens, onClose }) {
 
         <button onClick={onClose} className="w-full py-2.5 rounded-xl border border-slate-300 font-medium text-sm">关闭 Close</button>
       </div>
-    </Modal>
+    </div>
   );
 }
 
