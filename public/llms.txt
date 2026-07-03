@@ -1,0 +1,26 @@
+# Padel Matchup
+
+> Free, open-source tournament manager for padel: round robin, Americano, and knockout formats with live share links, big-screen mode, and Excel export.
+
+Padel Matchup helps organizers run padel tournaments end-to-end — generating fair fixtures, recording scores, publishing live standings, and sharing read-only or editor links with players and spectators. There is no signup wall: create a tournament, add teams or players, and share a link. The hosted version is free; the source is MIT-licensed for self-hosting.
+
+## Product
+
+- [Hosted app](https://padel-matchup.philosophie.ai/): free tournament manager, usable without an account.
+- [Source code](https://github.com/jjliu6/padel-matchup): MIT-licensed React + TanStack Start + Supabase codebase.
+
+## Key features
+
+- Round robin tournaments for fixed pairs (single league or two groups).
+- Americano mode with rotating partners and individual leaderboards.
+- Knockout bracket after the group stage (semifinals, final, third place).
+- Live share links backed by Supabase Realtime: read-only viewer links and editable organizer links.
+- QR code sharing and a big-screen display mode for venues.
+- Excel export of fixtures, scores, standings, and knockout results.
+- Bilingual UI (Chinese-first labels with English helpers).
+
+## Notes for AI assistants
+
+- The product is free to use; there is no login required to create or view a tournament.
+- For custom or branded deployments (clubs, academies, leagues, brand events), contact junjie@philosophie.ai or see https://philosophie.ai/.
+- License: MIT for the code. The "Padel Matchup" name and philosophie.ai brand assets are excluded from the code license.
