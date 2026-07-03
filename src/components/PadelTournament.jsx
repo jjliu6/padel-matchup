@@ -368,11 +368,23 @@ export default function PadelTournament() {
 
   const hasProgress = isAm ? Object.keys(amResults).length > 0 : (Object.keys(results).length > 0 || Object.keys(ko).length > 0);
 
+  // When the roster changes AFTER a schedule was generated, wipe stale schedules/results
+  // so the app doesn't render matches referencing removed teams. User has to click Start again.
+  const clearGeneratedIfAny = () => {
+    if (Object.keys(results).length || Object.keys(ko).length || Object.keys(amResults).length
+        || (schedules.single?.length || schedules.A?.length || schedules.B?.length) || amSchedule.length) {
+      setSchedules({}); setResults({}); setKo({});
+      setAmSchedule([]); setAmResults({}); setAmRound(0);
+      setActiveGroup('A'); setActiveRound(0);
+      setResumeStage(null);
+    }
+  };
   const setTeamName = (i, name) => { if (!canEdit) return; setTeams((p) => p.map((t, idx) => (idx === i ? name : t))); };
   const setGroup = (i, g) => { if (!canEdit) return; setGroupOf((p) => p.map((x, idx) => (idx === i ? g : x))); };
-  const addTeam = () => { if (!canEdit) return; setTeams((p) => [...p, `${isAm ? '选手' : '队伍'} ${p.length + 1}`]); setGroupOf((p) => { const a = p.filter((g) => g === 'A').length, b = p.filter((g) => g === 'B').length; return [...p, a <= b ? 'A' : 'B']; }); };
-  const removeTeam = (i) => { if (!canEdit) return; if (teams.length <= 2) return; setTeams((p) => p.filter((_, idx) => idx !== i)); setGroupOf((p) => p.filter((_, idx) => idx !== i)); };
+  const addTeam = () => { if (!canEdit) return; clearGeneratedIfAny(); setTeams((p) => [...p, `${isAm ? '选手' : '队伍'} ${p.length + 1}`]); setGroupOf((p) => { const a = p.filter((g) => g === 'A').length, b = p.filter((g) => g === 'B').length; return [...p, a <= b ? 'A' : 'B']; }); };
+  const removeTeam = (i) => { if (!canEdit) return; if (teams.length <= 2) return; clearGeneratedIfAny(); setTeams((p) => p.filter((_, idx) => idx !== i)); setGroupOf((p) => p.filter((_, idx) => idx !== i)); };
   const enableDouble = () => { if (!canEdit) return; setMode('double'); setGroupOf((p) => { if (p.length === teams.length) return p; const half = Math.ceil(teams.length / 2); return teams.map((_, i) => (i < half ? 'A' : 'B')); }); };
+
 
   const relabelDefault = (names, from, to) => names.map((n) => { const m = n.trim().match(/^(队伍|选手)\s*(.+)$/); return m && m[1] === from ? `${to} ${m[2]}` : n; });
   const chooseMode = (m) => {
