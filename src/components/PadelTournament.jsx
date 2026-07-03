@@ -199,6 +199,9 @@ export default function PadelTournament() {
   const [amResults, setAmResults] = useState(() => pget('amResults', {}));
   const [amRound, setAmRound] = useState(() => pget('amRound', 0));
   const [showBig, setShowBig] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
 
   // ----- Cloud share/sync -----
   const [cloudTokens, setCloudTokens] = useState(null); // { view_token, edit_token } | null
@@ -454,8 +457,13 @@ export default function PadelTournament() {
       ? [{ g: 'A', name: 'A 组 · Group A', rounds: schedules.A || [], standings: standingsA, qc: advancePerGroup }, { g: 'B', name: 'B 组 · Group B', rounds: schedules.B || [], standings: standingsB, qc: advancePerGroup }]
       : [];
 
+  if (!mounted) {
+    return <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100" aria-hidden />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-800 font-sans">
+
       <div>
         <header className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 text-white shadow-lg shadow-blue-900/20 border-b-2 border-amber-400/80">
           <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-2">
@@ -641,6 +649,16 @@ function SetupView(p) {
 
   return (
     <div className="space-y-6">
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 shadow-sm shadow-slate-300/40 aspect-[3/1] sm:aspect-[16/5] bg-slate-900">
+        <img src="/hero-court.jpg" alt="Padel court at dusk" width={1920} height={640} className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/50 to-transparent" />
+        <div className="relative h-full flex flex-col justify-center px-6 sm:px-10 max-w-[70%]">
+          <div className="text-[10px] sm:text-xs tracking-[0.3em] uppercase text-amber-300/90 font-semibold">Padel Tournament</div>
+          <h2 className="mt-2 text-2xl sm:text-4xl font-black text-white leading-tight drop-shadow">循环赛 · 淘汰赛 · Americano</h2>
+          <p className="mt-2 text-xs sm:text-sm text-slate-200/85 max-w-md">一站式生成赛程、记录比分、大屏直播、扫码分享。<span className="opacity-70">Schedule · Score · Big screen · Share.</span></p>
+        </div>
+      </div>
+
       {resumeStage && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
           <span className="text-sm text-amber-800">比赛进行中 · 修改名单需重新生成（会清空比分）。<br /><span className="text-xs text-amber-600">Tournament in progress — editing the roster requires regenerating.</span></span>
