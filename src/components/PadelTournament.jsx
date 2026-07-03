@@ -1,19 +1,19 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import { createTournament, loadTournament, saveTournament, getUrlTokens, updateUrlTokens, buildShareUrls, subscribeTournament, broadcastTournament } from '@/lib/tournament-cloud';
+import { LangProvider, useT, LANGS } from '@/lib/i18n.jsx';
 import QRCode from 'qrcode';
 
-const LS_KEY = 'padel-tournament-state-v1';
-const loadPersisted = () => {
+function loadPersisted() {
   if (typeof window === 'undefined') return {};
   try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}') || {}; }
   catch { return {}; }
-};
-const _persisted = loadPersisted();
-const pget = (k, fallback) => (k in _persisted ? _persisted[k] : fallback);
+}
+const LS_KEY = 'padel-tournament-state-v1';
 import * as XLSX from 'xlsx';
 import {
   Trophy, Users, Home, Crown, Plus, Minus, Coffee, Swords, Flag, Check, Medal,
-  ArrowRight, ListOrdered, FileSpreadsheet, LayoutGrid, Monitor, X,
+  ArrowRight, ListOrdered, FileSpreadsheet, LayoutGrid, Monitor, X, Globe,
   ChevronLeft, ChevronRight, Shuffle, Share2, Copy, Eye, Loader2, CloudOff, Cloud,
 } from 'lucide-react';
 
@@ -139,18 +139,18 @@ function computeBracket({ mode, single, A, B, advancePerGroup, ko }) {
   const out = { kind: 'none', sf1: null, sf2: null, final: null, third: null, champion: null, runnerUp: null, thirdPlace: null };
   if (mode === 'double' && advancePerGroup >= 2 && A.length >= 2 && B.length >= 2) {
     out.kind = 'semis';
-    out.sf1 = { a: A[0].team, aLabel: 'A组 #1', b: B[1].team, bLabel: 'B组 #2' };
-    out.sf2 = { a: B[0].team, aLabel: 'B组 #1', b: A[1].team, bLabel: 'A组 #2' };
+    out.sf1 = { a: A[0].team, aSeed: { group: 'A', rank: 1 }, b: B[1].team, bSeed: { group: 'B', rank: 2 } };
+    out.sf2 = { a: B[0].team, aSeed: { group: 'B', rank: 1 }, b: A[1].team, bSeed: { group: 'A', rank: 2 } };
   } else if (mode === 'double' && A.length >= 1 && B.length >= 1) {
     out.kind = 'final';
-    out.final = { a: A[0].team, aLabel: 'A组 #1', b: B[0].team, bLabel: 'B组 #1', res: ko.final };
+    out.final = { a: A[0].team, aSeed: { group: 'A', rank: 1 }, b: B[0].team, bSeed: { group: 'B', rank: 1 }, res: ko.final };
   } else if (mode === 'single' && single.length >= 4) {
     out.kind = 'semis';
-    out.sf1 = { a: single[0].team, aLabel: '#1', b: single[3].team, bLabel: '#4' };
-    out.sf2 = { a: single[1].team, aLabel: '#2', b: single[2].team, bLabel: '#3' };
+    out.sf1 = { a: single[0].team, aSeed: { rank: 1 }, b: single[3].team, bSeed: { rank: 4 } };
+    out.sf2 = { a: single[1].team, aSeed: { rank: 2 }, b: single[2].team, bSeed: { rank: 3 } };
   } else if (mode === 'single' && single.length >= 2) {
     out.kind = 'final';
-    out.final = { a: single[0].team, aLabel: '#1', b: single[1].team, bLabel: '#2', res: ko.final };
+    out.final = { a: single[0].team, aSeed: { rank: 1 }, b: single[1].team, bSeed: { rank: 2 }, res: ko.final };
   } else { return out; }
 
   if (out.kind === 'semis') {
@@ -169,25 +169,53 @@ function computeBracket({ mode, single, A, B, advancePerGroup, ko }) {
   }
   return out;
 }
-const gLabel = (g) => (g === 'A' ? 'A组' : g === 'B' ? 'B组' : '循环赛');
+const gLabel = (t, g) => (g === 'A' ? t('label.groupA') : g === 'B' ? t('label.groupB') : t('label.roundRobin'));
+const seedLabel = (d, seed) => (!seed ? '' : seed.group ? d('seed.groupRank', { group: seed.group, rank: seed.rank }) : d('seed.rank', { rank: seed.rank }));
 
 /* ============ 双语小标题助手 ============ */
-function Bi({ zh, en, className = '', enCls = 'text-slate-400' }) {
+function Bi({ k, vars, className = '', enCls = 'text-slate-400' }) {
+  const { bi } = useT();
+  const { primary, secondary } = bi(k, vars);
   return (
     <div className={`leading-tight ${className}`}>
-      <div>{zh}</div>
-      <div className={`text-[10px] font-normal tracking-wider uppercase ${enCls}`}>{en}</div>
+      <div>{primary}</div>
+      {secondary && <div className={`text-[10px] font-normal tracking-wider uppercase ${enCls}`}>{secondary}</div>}
     </div>
   );
 }
 
-export default function PadelTournament() {
+// Paragraph variant: primary line, then a smaller muted secondary line on its
+// own row (bilingual mode only) — mirrors the app's modal-copy layout.
+function BiPara({ k, vars }) {
+  const { lang, bi } = useT();
+  const { primary, secondary } = bi(k, vars);
+  return <>{primary}{lang === 'bilingual' && <><br /><span className="text-xs text-slate-400">{secondary}</span></>}</>;
+}
+
+export default function PadelTournament({ initialLang = 'bilingual' }) {
+  return (
+    <LangProvider lang={initialLang}>
+      <PadelTournamentInner />
+    </LangProvider>
+  );
+}
+
+function PadelTournamentInner() {
+  const { lang, t, bi, d } = useT();
+  const persistedRef = useRef(null);
+  if (persistedRef.current === null) persistedRef.current = loadPersisted();
+  const pget = (k, fallback) => (k in persistedRef.current ? persistedRef.current[k] : fallback);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') document.documentElement.lang = lang === 'bilingual' ? 'zh' : lang;
+  }, [lang]);
+
   const [urlTokens] = useState(() => getUrlTokens());
   const [stage, setStage] = useState(() => pget('stage', 'setup'));
   const [resumeStage, setResumeStage] = useState(null);
   const [confirmRegen, setConfirmRegen] = useState(false);
-  const [title, setTitle] = useState(() => pget('title', 'Padel 循环赛'));
-  const [teams, setTeams] = useState(() => pget('teams', ['队伍 1', '队伍 2', '队伍 3', '队伍 4', '队伍 5', '队伍 6', '队伍 7', '队伍 8']));
+  const [title, setTitle] = useState(() => pget('title', d('default.title')));
+  const [teams, setTeams] = useState(() => pget('teams', Array.from({ length: 8 }, (_, i) => `${d('default.team')} ${i + 1}`)));
   const [groupOf, setGroupOf] = useState(() => pget('groupOf', ['A', 'A', 'A', 'A', 'B', 'B', 'B', 'B']));
   const [mode, setMode] = useState(() => pget('mode', 'single'));
   const [advancePerGroup, setAdvancePerGroup] = useState(() => pget('advancePerGroup', 2));
@@ -331,7 +359,7 @@ export default function PadelTournament() {
       setShowShare(true);
     } catch (e) {
       setSyncStatus('error');
-      alert('发布失败 / Publish failed: ' + (e?.message || e));
+      alert(`${t('alert.publishFailed')}: ${e?.message || e}`);
     } finally {
       setPublishing(false);
     }
@@ -376,11 +404,7 @@ export default function PadelTournament() {
   const confirmRosterChange = () => {
     if (!hasGenerated()) return true;
     if (typeof window === 'undefined') return true;
-    return window.confirm(
-      '⚠️ 修改队伍名单会清空当前赛程、比分和淘汰赛数据，需要重新点"开始 Start"生成新赛程。\n\n'
-      + 'Changing the roster will clear the current schedule, scores and knockout data. You will need to click "Start" again to regenerate.\n\n'
-      + '确定继续？ Continue?'
-    );
+    return window.confirm(t('confirm.rosterChange'));
   };
   const clearGeneratedIfAny = () => {
     if (hasGenerated()) {
@@ -392,17 +416,23 @@ export default function PadelTournament() {
   };
   const setTeamName = (i, name) => { if (!canEdit) return; setTeams((p) => p.map((t, idx) => (idx === i ? name : t))); };
   const setGroup = (i, g) => { if (!canEdit) return; setGroupOf((p) => p.map((x, idx) => (idx === i ? g : x))); };
-  const addTeam = () => { if (!canEdit) return; if (!confirmRosterChange()) return; clearGeneratedIfAny(); setTeams((p) => [...p, `${isAm ? '选手' : '队伍'} ${p.length + 1}`]); setGroupOf((p) => { const a = p.filter((g) => g === 'A').length, b = p.filter((g) => g === 'B').length; return [...p, a <= b ? 'A' : 'B']; }); };
+  const addTeam = () => { if (!canEdit) return; if (!confirmRosterChange()) return; clearGeneratedIfAny(); setTeams((p) => [...p, `${isAm ? d('default.player') : d('default.team')} ${p.length + 1}`]); setGroupOf((p) => { const a = p.filter((g) => g === 'A').length, b = p.filter((g) => g === 'B').length; return [...p, a <= b ? 'A' : 'B']; }); };
   const removeTeam = (i) => { if (!canEdit) return; if (teams.length <= 2) return; if (!confirmRosterChange()) return; clearGeneratedIfAny(); setTeams((p) => p.filter((_, idx) => idx !== i)); setGroupOf((p) => p.filter((_, idx) => idx !== i)); };
   const enableDouble = () => { if (!canEdit) return; setMode('double'); setGroupOf((p) => { if (p.length === teams.length) return p; const half = Math.ceil(teams.length / 2); return teams.map((_, i) => (i < half ? 'A' : 'B')); }); };
 
-
-  const relabelDefault = (names, from, to) => names.map((n) => { const m = n.trim().match(/^(队伍|选手)\s*(.+)$/); return m && m[1] === from ? `${to} ${m[2]}` : n; });
+  // Matches a default-named entry in *any* supported language so relabeling
+  // stays correct even if a tournament was started in a different language.
+  const TEAM_WORDS = ['队伍', 'Team', 'Equipo'];
+  const PLAYER_WORDS = ['选手', 'Player', 'Jugador'];
+  const relabelDefault = (names, fromWords, to) => {
+    const re = new RegExp(`^(${fromWords.join('|')})\\s*(.+)$`);
+    return names.map((n) => { const m = n.trim().match(re); return m ? `${to} ${m[2]}` : n; });
+  };
   const chooseMode = (m) => {
     if (!canEdit) return;
-    if (m === 'americano') { setTeams((p) => relabelDefault(p, '队伍', '选手')); setMode('americano'); }
-    else if (m === 'double') { setTeams((p) => relabelDefault(p, '选手', '队伍')); enableDouble(); }
-    else { setTeams((p) => relabelDefault(p, '选手', '队伍')); setMode('single'); }
+    if (m === 'americano') { setTeams((p) => relabelDefault(p, TEAM_WORDS, d('default.player'))); setMode('americano'); }
+    else if (m === 'double') { setTeams((p) => relabelDefault(p, PLAYER_WORDS, d('default.team'))); enableDouble(); }
+    else { setTeams((p) => relabelDefault(p, PLAYER_WORDS, d('default.team'))); setMode('single'); }
   };
 
   const canStart = mode === 'single' ? teams.length >= 2 : mode === 'double' ? (sizeA >= 2 && sizeB >= 2) : teams.length >= 4;
@@ -410,7 +440,7 @@ export default function PadelTournament() {
   const doGenerate = () => {
     if (!canEdit) return;
     setConfirmRegen(false);
-    const clean = teams.map((t, i) => t.trim() || `${isAm ? '选手' : '队伍'} ${i + 1}`);
+    const clean = teams.map((t, i) => t.trim() || `${isAm ? d('default.player') : d('default.team')} ${i + 1}`);
     const seen = new Set();
     const unique = clean.map((t) => { let name = t, k = 2; while (seen.has(name)) name = `${t} (${k++})`; seen.add(name); return name; });
     setTeams(unique);
@@ -444,8 +474,8 @@ export default function PadelTournament() {
     lastSavedRef.current = '';
     setResumeStage(null);
     setStage('setup');
-    setTitle('Padel 循环赛');
-    setTeams(['队伍 1', '队伍 2', '队伍 3', '队伍 4', '队伍 5', '队伍 6', '队伍 7', '队伍 8']);
+    setTitle(d('default.title'));
+    setTeams(Array.from({ length: 8 }, (_, i) => `${d('default.team')} ${i + 1}`));
     setGroupOf(['A', 'A', 'A', 'A', 'B', 'B', 'B', 'B']);
     setMode('single');
     setAdvancePerGroup(2);
@@ -473,25 +503,25 @@ export default function PadelTournament() {
       const amRows = [];
       amSchedule.forEach((rd, ri) => {
         rd.courts.forEach((c, ci) => { const r = amResults[`${ri}-${ci}`]; amRows.push({ round: ri + 1, court: ci + 1, t1: c.t1.join(' & '), t2: c.t2.join(' & '), score: r?.done ? `${r.s1} : ${r.s2}` : '—' }); });
-        rd.byes.forEach((b) => amRows.push({ round: ri + 1, court: '-', t1: b, t2: '（轮空）', score: '' }));
+        rd.byes.forEach((b) => amRows.push({ round: ri + 1, court: '-', t1: b, t2: t('export.byeLabel'), score: '' }));
       });
       return { title, mode, leaderboard: amLeaderboard, amRows };
     }
     const groups = mode === 'single'
-      ? [{ g: 'single', name: '积分榜', rows: standingsSingle, qc: standingsSingle.length >= 4 ? 4 : 2 }]
-      : [{ g: 'A', name: 'A组', rows: standingsA, qc: advancePerGroup }, { g: 'B', name: 'B组', rows: standingsB, qc: advancePerGroup }];
+      ? [{ g: 'single', name: t('group.standings'), rows: standingsSingle, qc: standingsSingle.length >= 4 ? 4 : 2 }]
+      : [{ g: 'A', name: gLabel(t, 'A'), rows: standingsA, qc: advancePerGroup }, { g: 'B', name: gLabel(t, 'B'), rows: standingsB, qc: advancePerGroup }];
     const matches = [];
     Object.entries(schedules).forEach(([g, rounds]) => (rounds || []).forEach((ms, ri) => ms.forEach((m, mi) => {
-      if (m.bye) { matches.push({ group: gLabel(g), round: ri + 1, a: m.bye, b: '（轮空）', score: '' }); return; }
-      matches.push({ group: gLabel(g), round: ri + 1, a: m.a, b: m.b, score: setsStr(results[key(g, ri, mi)]) });
+      if (m.bye) { matches.push({ group: gLabel(t, g), round: ri + 1, a: m.bye, b: t('export.byeLabel'), score: '' }); return; }
+      matches.push({ group: gLabel(t, g), round: ri + 1, a: m.a, b: m.b, score: setsStr(results[key(g, ri, mi)]) });
     })));
     return { title, mode, groups, matches, bracket };
-  }, [isAm, title, mode, schedules, results, standingsSingle, standingsA, standingsB, advancePerGroup, bracket, amSchedule, amResults, amLeaderboard]);
+  }, [isAm, title, mode, schedules, results, standingsSingle, standingsA, standingsB, advancePerGroup, bracket, amSchedule, amResults, amLeaderboard, t]);
 
   const bigGroups = mode === 'single'
-    ? [{ g: 'single', name: '赛程 · Fixtures', rounds: schedules.single || [], standings: standingsSingle, qc: standingsSingle.length >= 4 ? 4 : 2 }]
+    ? [{ g: 'single', name: bi('big.tabFixtures').primary, rounds: schedules.single || [], standings: standingsSingle, qc: standingsSingle.length >= 4 ? 4 : 2 }]
     : mode === 'double'
-      ? [{ g: 'A', name: 'A 组 · Group A', rounds: schedules.A || [], standings: standingsA, qc: advancePerGroup }, { g: 'B', name: 'B 组 · Group B', rounds: schedules.B || [], standings: standingsB, qc: advancePerGroup }]
+      ? [{ g: 'A', name: gLabel(t, 'A'), rounds: schedules.A || [], standings: standingsA, qc: advancePerGroup }, { g: 'B', name: gLabel(t, 'B'), rounds: schedules.B || [], standings: standingsB, qc: advancePerGroup }]
       : [];
 
   if (!mounted) {
@@ -512,15 +542,16 @@ export default function PadelTournament() {
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-              {stage !== 'setup' && <button onClick={() => setShowBig(true)} title="大屏 / Big screen" className="flex items-center gap-1 text-sm bg-amber-400 text-blue-900 hover:bg-amber-300 px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold shadow-sm shadow-amber-400/30 transition-colors"><Monitor size={15} /> <span className="hidden xs:inline sm:inline">大屏</span><span className="hidden sm:inline text-[10px] font-normal opacity-70 ml-0.5">Screen</span></button>}
+              <LangSwitcher lang={lang} />
+              {stage !== 'setup' && <button onClick={() => setShowBig(true)} title={t('nav.bigScreenTooltip')} className="flex items-center gap-1 text-sm bg-amber-400 text-blue-900 hover:bg-amber-300 px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold shadow-sm shadow-amber-400/30 transition-colors"><Monitor size={15} /> <NavLabel k="nav.bigScreen" /></button>}
               {stage !== 'setup' && !readOnly && (
                 cloudTokens?.edit_token
-                  ? <button onClick={() => setShowShare(true)} title="分享 / Share" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Share2 size={15} /> <SyncBadge status={syncStatus} /></button>
-                  : <button onClick={handlePublish} disabled={publishing} title="发布并生成分享链接 / Publish & share" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50">{publishing ? <Loader2 size={15} className="animate-spin" /> : <Share2 size={15} />} <span className="hidden sm:inline">分享</span><span className="hidden sm:inline text-[10px] font-normal opacity-70 ml-0.5">Share</span></button>
+                  ? <button onClick={() => setShowShare(true)} title={t('nav.shareTooltip')} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Share2 size={15} /> <SyncBadge status={syncStatus} /></button>
+                  : <button onClick={handlePublish} disabled={publishing} title={t('nav.publishTooltip')} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50">{publishing ? <Loader2 size={15} className="animate-spin" /> : <Share2 size={15} />} <NavLabel k="nav.share" hiddenClass="hidden sm:inline" /></button>
               )}
-              {stage !== 'setup' && <button onClick={() => exportToExcel(exportModel)} title="导出结果 / Export results" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><FileSpreadsheet size={15} /> <span className="hidden sm:inline">导出结果</span><span className="hidden sm:inline text-[10px] font-normal opacity-70 ml-0.5">Results</span></button>}
-              {stage !== 'setup' && <button onClick={goHome} title="返回设置页（保留数据）/ Back to setup (keeps data)" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Home size={15} /> <span className="hidden sm:inline">首页</span></button>}
-              {!readOnly && <button onClick={() => setConfirmNew(true)} title="开始一场全新赛事（清空所有数据）/ Start new tournament (clears all)" className="flex items-center gap-1 text-sm bg-rose-500/90 hover:bg-rose-500 text-white px-2.5 py-1.5 rounded-lg transition-colors"><Plus size={15} /> <span className="hidden sm:inline">新建</span><span className="hidden sm:inline text-[10px] font-normal opacity-80 ml-0.5">New</span></button>}
+              {stage !== 'setup' && <button onClick={() => exportToExcel(exportModel, t)} title={t('nav.exportTooltip')} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><FileSpreadsheet size={15} /> <NavLabel k="nav.export" hiddenClass="hidden sm:inline" /></button>}
+              {stage !== 'setup' && <button onClick={goHome} title={t('nav.homeTooltip')} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Home size={15} /> <NavLabel k="nav.home" hiddenClass="hidden sm:inline" /></button>}
+              {!readOnly && <button onClick={() => setConfirmNew(true)} title={t('nav.newTooltip')} className="flex items-center gap-1 text-sm bg-rose-500/90 hover:bg-rose-500 text-white px-2.5 py-1.5 rounded-lg transition-colors"><Plus size={15} /> <NavLabel k="nav.new" hiddenClass="hidden sm:inline" opacityCls="opacity-80" /></button>}
             </div>
           </div>
         </header>
@@ -529,7 +560,7 @@ export default function PadelTournament() {
           <div className="bg-amber-100 border-b border-amber-300 text-amber-900 text-xs sm:text-sm">
             <div className="max-w-5xl mx-auto px-4 py-2 flex items-center gap-2">
               <Eye size={14} className="shrink-0" />
-              <span className="flex-1">只读观看模式 · 即时同步 <span className="opacity-70">Read-only view · live</span></span>
+              <ReadOnlyBanner />
             </div>
           </div>
         )}
@@ -561,12 +592,11 @@ export default function PadelTournament() {
       {confirmRegen && (
         <Modal onClose={() => setConfirmRegen(false)}>
           <div className="text-center">
-            <div className="font-semibold text-lg mb-0.5">重新生成赛程？</div>
-            <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Regenerate schedule?</div>
-            <p className="text-sm text-slate-500 mb-5">已有比分记录，重新生成会<b className="text-rose-500">清空现有比分</b>。若只是想返回查看，请点“取消”后用“继续比赛”。<br /><span className="text-xs text-slate-400">This will clear existing scores. To just look around, cancel and use “Resume”.</span></p>
+            <Bi k="confirm.regenTitle" className="mb-2" enCls="text-slate-400 uppercase tracking-wider normal-case text-xs" />
+            <p className="text-sm text-slate-500 mb-5"><BiPara k="confirm.regenBody" /></p>
             <div className="flex gap-2">
-              <button onClick={() => setConfirmRegen(false)} className="flex-1 py-2.5 rounded-xl border border-slate-300 font-medium">取消 Cancel</button>
-              <button onClick={doGenerate} className="flex-1 py-2.5 rounded-xl bg-rose-500 text-white font-medium">确定 Confirm</button>
+              <button onClick={() => setConfirmRegen(false)} className="flex-1 py-2.5 rounded-xl border border-slate-300 font-medium">{t('confirm.cancel')}</button>
+              <button onClick={doGenerate} className="flex-1 py-2.5 rounded-xl bg-rose-500 text-white font-medium">{t('confirm.confirm')}</button>
             </div>
           </div>
         </Modal>
@@ -575,16 +605,14 @@ export default function PadelTournament() {
       {confirmNew && (
         <Modal onClose={() => setConfirmNew(false)}>
           <div className="text-center">
-            <div className="font-semibold text-lg mb-0.5">开始一场全新赛事？</div>
-            <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Start a new tournament?</div>
+            <Bi k="confirm.newTitle" className="mb-2" enCls="text-slate-400 uppercase tracking-wider normal-case text-xs" />
             <p className="text-sm text-slate-500 mb-5">
-              会<b className="text-rose-500">清空所有队伍、赛程和比分</b>，并断开当前的分享链接。<br />
-              <span className="text-xs text-slate-400">Clears all teams, schedule and scores, and disconnects the current share link.</span><br />
-              <span className="text-xs text-slate-500 mt-2 inline-block">如果只是想临时看别的页面，请点「首页」而不是「新建」。<br /><span className="text-slate-400">To just navigate around while keeping data, use “首页 Home” instead.</span></span>
+              <BiPara k="confirm.newBody1" /><br />
+              <span className="text-xs text-slate-500 mt-2 inline-block"><BiPara k="confirm.newBody2" /></span>
             </p>
             <div className="flex gap-2">
-              <button onClick={() => setConfirmNew(false)} className="flex-1 py-2.5 rounded-xl border border-slate-300 font-medium">取消 Cancel</button>
-              <button onClick={startNewSession} className="flex-1 py-2.5 rounded-xl bg-rose-500 text-white font-medium">确定 Confirm</button>
+              <button onClick={() => setConfirmNew(false)} className="flex-1 py-2.5 rounded-xl border border-slate-300 font-medium">{t('confirm.cancel')}</button>
+              <button onClick={startNewSession} className="flex-1 py-2.5 rounded-xl bg-rose-500 text-white font-medium">{t('confirm.confirm')}</button>
             </div>
           </div>
         </Modal>
@@ -600,6 +628,46 @@ export default function PadelTournament() {
   );
 }
 
+function ReadOnlyBanner() {
+  const { lang, bi } = useT();
+  const { primary, secondary } = bi('readonly.banner');
+  return <span className="flex-1">{primary} {lang !== 'bilingual' ? null : <span className="opacity-70">{secondary}</span>}</span>;
+}
+
+function NavLabel({ k, hiddenClass = 'hidden xs:inline sm:inline', opacityCls = 'opacity-70' }) {
+  const { lang, bi } = useT();
+  const { primary, secondary } = bi(k);
+  return (
+    <>
+      <span className={hiddenClass}>{primary}</span>
+      {lang === 'bilingual' && <span className={`hidden sm:inline text-[10px] font-normal ${opacityCls} ml-0.5`}>{secondary}</span>}
+    </>
+  );
+}
+
+function LangSwitcher({ lang }) {
+  const navigate = useNavigate();
+  const go = (code) => {
+    const target = LANGS.find((l) => l.code === code);
+    if (!target || target.code === lang) return;
+    navigate({ to: target.path, search: (prev) => prev });
+  };
+  return (
+    <div className="relative shrink-0">
+      <select
+        value={lang}
+        onChange={(e) => go(e.target.value)}
+        aria-label="Language / 语言 / Idioma"
+        title="Language / 语言 / Idioma"
+        className="appearance-none bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm rounded-lg pl-6 sm:pl-7 pr-2 sm:pr-2.5 py-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-300/50 border-none"
+      >
+        {LANGS.map((l) => <option key={l.code} value={l.code} className="text-slate-800 bg-white">{l.label}</option>)}
+      </select>
+      <Globe size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-white/80" />
+    </div>
+  );
+}
+
 function SyncBadge({ status }) {
   if (status === 'saving') return <Loader2 size={12} className="animate-spin ml-1 opacity-80" />;
   if (status === 'error') return <CloudOff size={12} className="ml-1 text-rose-300" />;
@@ -608,6 +676,7 @@ function SyncBadge({ status }) {
 }
 
 function ShareModal({ tokens, onClose }) {
+  const { t } = useT();
   const { viewUrl, editUrl } = buildShareUrls({ view: tokens.view_token, edit: tokens.edit_token });
   const [copied, setCopied] = useState('');
   const [qrDataUrl, setQrDataUrl] = useState('');
@@ -626,40 +695,40 @@ function ShareModal({ tokens, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={onClose}>
       <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="font-semibold text-lg mb-0.5 flex items-center gap-2"><Share2 size={18} className="text-blue-600" /> 分享比赛</div>
-        <div className="text-xs text-slate-400 uppercase tracking-wider mb-4">Share this tournament · 实时同步 Live</div>
+        <div className="font-semibold text-lg mb-0.5 flex items-center gap-2"><Share2 size={18} className="text-blue-600" /> {t('share.title')}</div>
+        <div className="text-xs text-slate-400 uppercase tracking-wider mb-4">{t('share.subtitle')}</div>
 
         {qrDataUrl && (
           <div className="mb-4 flex flex-col items-center bg-slate-50 border border-slate-200 rounded-xl p-4">
             <img src={qrDataUrl} alt="QR code" className="w-48 h-48" />
-            <div className="text-xs text-slate-500 mt-2 text-center">现场扫码看大屏 · Scan to watch live</div>
+            <div className="text-xs text-slate-500 mt-2 text-center">{t('share.qrCaption')}</div>
             {qrDataUrl && (
-              <a href={qrDataUrl} download="padel-tournament-qr.png" className="text-[11px] text-blue-600 hover:text-blue-800 mt-1">下载二维码 Download QR</a>
+              <a href={qrDataUrl} download="padel-tournament-qr.png" className="text-[11px] text-blue-600 hover:text-blue-800 mt-1">{t('share.qrDownload')}</a>
             )}
           </div>
         )}
 
         <div className="mb-4">
-          <div className="text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5"><Eye size={12} /> 只读观看 · View-only link</div>
+          <div className="text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5"><Eye size={12} /> {t('share.viewLinkLabel')}</div>
           <div className="flex gap-1.5">
             <input readOnly value={viewUrl} className="flex-1 px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-xs font-mono truncate" onFocus={(e) => e.target.select()} />
-            <button onClick={() => copy('view', viewUrl)} className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center gap-1"><Copy size={12} />{copied === 'view' ? '已复制' : '复制'}</button>
+            <button onClick={() => copy('view', viewUrl)} className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center gap-1"><Copy size={12} />{copied === 'view' ? t('share.copied') : t('share.copy')}</button>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">分享给观众/球员看积分和大屏。他们无法修改比分。</p>
+          <p className="text-[11px] text-slate-400 mt-1">{t('share.viewLinkDesc')}</p>
         </div>
 
         {editUrl && (
           <div className="mb-4">
-            <div className="text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5"><Share2 size={12} /> 管理链接 · Editor link</div>
+            <div className="text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5"><Share2 size={12} /> {t('share.editLinkLabel')}</div>
             <div className="flex gap-1.5">
               <input readOnly value={editUrl} className="flex-1 px-2.5 py-2 rounded-lg border border-amber-200 bg-amber-50 text-xs font-mono truncate" onFocus={(e) => e.target.select()} />
-              <button onClick={() => copy('edit', editUrl)} className="px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium flex items-center gap-1"><Copy size={12} />{copied === 'edit' ? '已复制' : '复制'}</button>
+              <button onClick={() => copy('edit', editUrl)} className="px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium flex items-center gap-1"><Copy size={12} />{copied === 'edit' ? t('share.copied') : t('share.copy')}</button>
             </div>
-            <p className="text-[11px] text-rose-500 mt-1">⚠ 谨慎分享：拿到此链接的人可以修改所有比分。</p>
+            <p className="text-[11px] text-rose-500 mt-1">{t('share.editLinkWarning')}</p>
           </div>
         )}
 
-        <button onClick={onClose} className="w-full py-2.5 rounded-xl border border-slate-300 font-medium text-sm">关闭 Close</button>
+        <button onClick={onClose} className="w-full py-2.5 rounded-xl border border-slate-300 font-medium text-sm">{t('share.close')}</button>
       </div>
     </div>
   );
@@ -678,11 +747,17 @@ function SetupView(p) {
   const { title, setTitle, teams, setTeamName, addTeam, removeTeam, numRounds, setNumRounds, maxRounds,
     mode, chooseMode, groupOf, setGroup, sizeA, sizeB, advancePerGroup, setAdvancePerGroup, canStart, onStart,
     isAm, resumeStage, onResume, defaultSets, setDefaultSets, canEdit = true } = p;
+  const { lang, t, bi, d } = useT();
   const rounds = Math.min(Math.max(1, numRounds), maxRounds);
-  const stepRounds = (d) => { if (canEdit) setNumRounds(Math.min(maxRounds, Math.max(1, rounds + d))); };
+  const stepRounds = (delta) => { if (canEdit) setNumRounds(Math.min(maxRounds, Math.max(1, rounds + delta))); };
   const isDouble = mode === 'double';
-  const unit = isAm ? '选手 / Players' : '队伍 / Teams';
+  const unit = t(isAm ? 'setup.participantsPlayers' : 'setup.participantsTeams');
   const card = 'bg-white rounded-2xl border border-slate-200/70 shadow-sm shadow-slate-300/40 p-5';
+
+  const heroSub = bi('hero.heading');
+  const nextStep = isAm ? null
+    : isDouble ? (advancePerGroup === 2 ? d('setup.summaryCrossover') : d('setup.summaryTwoChampFinal'))
+      : (teams.length >= 4 ? d('setup.summarySemiFinal') : d('setup.summaryFinalOnly'));
 
   return (
     <div className="space-y-6">
@@ -691,59 +766,59 @@ function SetupView(p) {
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950/90 via-slate-950/70 to-slate-950/30 sm:bg-gradient-to-r sm:from-slate-950/85 sm:via-slate-950/50 sm:to-transparent" />
         <div className="relative h-full flex flex-col justify-center px-5 py-6 sm:px-10 sm:py-0 sm:max-w-[70%]">
           <div className="text-[10px] sm:text-xs tracking-[0.3em] uppercase text-amber-300/90 font-semibold">Padel Tournament</div>
-          <h2 className="mt-2 text-xl sm:text-4xl font-black text-white leading-tight drop-shadow">循环赛 · 淘汰赛 · 非固定搭档</h2>
-          <div className="mt-1 text-[11px] sm:text-sm tracking-[0.2em] uppercase text-amber-200/80 font-medium">Round Robin · Knockout · Americano</div>
-          <p className="mt-3 text-xs sm:text-sm text-slate-200/85 sm:max-w-md">一站式生成赛程、记录比分、大屏直播、扫码分享。<br /><span className="opacity-70">Schedule · Score · Big screen · Share.</span></p>
+          <h2 className="mt-2 text-xl sm:text-4xl font-black text-white leading-tight drop-shadow">{heroSub.primary}</h2>
+          <div className="mt-1 text-[11px] sm:text-sm tracking-[0.2em] uppercase text-amber-200/80 font-medium">{t('hero.sub')}</div>
+          <p className="mt-3 text-xs sm:text-sm text-slate-200/85 sm:max-w-md">{t('hero.body')}</p>
         </div>
       </div>
 
       {resumeStage && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-          <span className="text-sm text-amber-800">比赛进行中 · 修改名单需重新生成（会清空比分）。<br /><span className="text-xs text-amber-600">Tournament in progress — editing the roster requires regenerating.</span></span>
-          <button onClick={onResume} className="shrink-0 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium px-3 py-1.5 rounded-lg">继续<span className="text-[10px] ml-0.5 opacity-80">Resume</span></button>
+          <span className="text-sm text-amber-800">{bi('setup.resumeBanner').primary}{lang === 'bilingual' && <><br /><span className="text-xs text-amber-600">{bi('setup.resumeBanner').secondary}</span></>}</span>
+          <button onClick={onResume} className="shrink-0 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium px-3 py-1.5 rounded-lg">{bi('setup.resume').primary}{lang === 'bilingual' && <span className="text-[10px] ml-0.5 opacity-80">{bi('setup.resume').secondary}</span>}</button>
         </div>
       )}
 
       <div className={card}>
-        <label className="block mb-1.5"><Bi zh="比赛名称" en="Tournament Name" className="text-sm font-medium text-slate-600" /></label>
+        <label className="block mb-1.5"><Bi k="setup.tournamentName" className="text-sm font-medium text-slate-600" /></label>
         <input value={title} onChange={(e) => canEdit && setTitle(e.target.value)} disabled={!canEdit} className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-500" />
       </div>
 
       <div className={card}>
-        <div className="flex items-center gap-2 mb-3"><LayoutGrid size={18} className="text-blue-700" /><Bi zh="赛制模式" en="Format" className="font-semibold" /></div>
+        <div className="flex items-center gap-2 mb-3"><LayoutGrid size={18} className="text-blue-700" /><Bi k="setup.format" className="font-semibold" /></div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <ModeCard active={mode === 'single'} onClick={() => chooseMode('single')} zh="单循环" en="Round Robin" desc="固定搭档，一个大循环 · Fixed pairs, one league" />
-          <ModeCard active={mode === 'double'} onClick={() => chooseMode('double')} zh="双小组" en="Two-Group Round Robin" desc="分两组循环，交叉出线 · Two groups, crossover" />
-          <ModeCard active={isAm} onClick={() => chooseMode('americano')} zh="非固定搭档 Americano" en="Americano" desc="每轮随机换搭档，累计个人得分 · Rotating partners" />
+          <ModeCard active={mode === 'single'} onClick={() => chooseMode('single')} k="setup.modeSingle" descKey="setup.modeSingleDesc" />
+          <ModeCard active={mode === 'double'} onClick={() => chooseMode('double')} k="setup.modeDouble" descKey="setup.modeDoubleDesc" />
+          <ModeCard active={isAm} onClick={() => chooseMode('americano')} k="setup.modeAmericano" descKey="setup.modeAmericanoDesc" />
         </div>
         {isDouble && (
           <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-            <span className="text-slate-500">每组出线数 <span className="text-xs text-slate-400">Advance</span></span>
-            {[1, 2].map((n) => <button key={n} onClick={() => canEdit && setAdvancePerGroup(n)} disabled={!canEdit} className={`px-3 py-1 rounded-lg border disabled:opacity-50 ${advancePerGroup === n ? 'bg-blue-700 text-white border-blue-700' : 'border-slate-300 text-slate-600'}`}>前 {n} 名</button>)}
-            <span className="text-xs text-slate-400">{advancePerGroup === 2 ? '→ 交叉半决赛 / Crossover semis' : '→ 两冠军决赛 / Winners final'}</span>
+            <span className="text-slate-500">{bi('setup.advance').primary} {lang === 'bilingual' && <span className="text-xs text-slate-400">{bi('setup.advance').secondary}</span>}</span>
+            {[1, 2].map((n) => <button key={n} onClick={() => canEdit && setAdvancePerGroup(n)} disabled={!canEdit} className={`px-3 py-1 rounded-lg border disabled:opacity-50 ${advancePerGroup === n ? 'bg-blue-700 text-white border-blue-700' : 'border-slate-300 text-slate-600'}`}>{t('setup.advanceN', { n })}</button>)}
+            <span className="text-xs text-slate-400">{t(advancePerGroup === 2 ? 'setup.advanceCrossover' : 'setup.advanceFinal')}</span>
           </div>
         )}
         {!isAm && (
           <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-            <span className="text-slate-500">默认盘数 <span className="text-xs text-slate-400">Sets / Match</span></span>
-            {[[1, '一盘定胜负', '1 Set'], [3, '三盘两胜', 'Best of 3']].map(([n, zh, en]) => (
-                <button key={n} onClick={() => canEdit && setDefaultSets(n)} disabled={!canEdit} className={`px-3 py-1 rounded-lg border disabled:opacity-50 ${defaultSets === n ? 'bg-blue-700 text-white border-blue-700' : 'border-slate-300 text-slate-600'}`}>{zh} <span className="text-[10px] opacity-70">{en}</span></button>
+            <span className="text-slate-500">{bi('setup.setsPerMatch').primary} {lang === 'bilingual' && <span className="text-xs text-slate-400">{bi('setup.setsPerMatch').secondary}</span>}</span>
+            {[[1, 'setup.setsOne'], [3, 'setup.setsThree']].map(([n, k2]) => (
+                <button key={n} onClick={() => canEdit && setDefaultSets(n)} disabled={!canEdit} className={`px-3 py-1 rounded-lg border disabled:opacity-50 ${defaultSets === n ? 'bg-blue-700 text-white border-blue-700' : 'border-slate-300 text-slate-600'}`}>{bi(k2).primary} {lang === 'bilingual' && <span className="text-[10px] opacity-70">{bi(k2).secondary}</span>}</button>
             ))}
-            <span className="text-xs text-slate-400">记分时仍可临时加减 · adjustable per match</span>
+            <span className="text-xs text-slate-400">{t('setup.setsHint')}</span>
           </div>
         )}
       </div>
 
       <div className={card}>
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2"><Users size={18} className="text-blue-700" /><span className="font-semibold">参赛{unit}</span><span className="text-sm font-normal text-slate-500">· {teams.length}</span></div>
-          <button onClick={addTeam} disabled={!canEdit} className="flex items-center gap-1 text-sm text-blue-700 hover:text-blue-900 font-medium disabled:opacity-40 disabled:hover:text-blue-700"><Plus size={16} /> 添加 Add</button>
+          <div className="flex items-center gap-2"><Users size={18} className="text-blue-700" /><span className="font-semibold">{unit}</span><span className="text-sm font-normal text-slate-500">· {teams.length}</span></div>
+          <button onClick={addTeam} disabled={!canEdit} className="flex items-center gap-1 text-sm text-blue-700 hover:text-blue-900 font-medium disabled:opacity-40 disabled:hover:text-blue-700"><Plus size={16} /> {t('setup.add')}</button>
         </div>
         <div className="grid sm:grid-cols-2 gap-2">
-          {teams.map((t, i) => (
+          {teams.map((tm, i) => (
             <div key={i} className="flex items-center gap-2">
               <span className="w-5 text-right text-sm text-slate-400">{i + 1}</span>
-              <input value={t} onChange={(e) => setTeamName(i, e.target.value)} disabled={!canEdit} className="flex-1 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-500" />
+              <input value={tm} onChange={(e) => setTeamName(i, e.target.value)} disabled={!canEdit} className="flex-1 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-500" />
               {isDouble && (
                 <div className="flex rounded-lg overflow-hidden border border-slate-300 text-sm">
                   {['A', 'B'].map((g) => <button key={g} onClick={() => setGroup(i, g)} disabled={!canEdit} className={`px-2.5 py-1.5 disabled:opacity-60 ${groupOf[i] === g ? (g === 'A' ? 'bg-sky-600 text-white' : 'bg-orange-500 text-white') : 'bg-white text-slate-500'}`}>{g}</button>)}
@@ -753,43 +828,78 @@ function SetupView(p) {
             </div>
           ))}
         </div>
-        {isDouble && <div className="mt-3 text-sm text-slate-500 flex gap-4"><span>A组 <b className="text-sky-700">{sizeA}</b></span><span>B组 <b className="text-orange-600">{sizeB}</b></span>{!(sizeA >= 2 && sizeB >= 2) && <span className="text-rose-500">每组至少 2 队 / Min 2</span>}</div>}
-        {isAm && teams.length < 4 && <div className="mt-3 text-sm text-rose-500">至少 4 名选手 / Need ≥ 4 players</div>}
+        {isDouble && <div className="mt-3 text-sm text-slate-500 flex gap-4"><span>{gLabel(t, 'A')} <b className="text-sky-700">{sizeA}</b></span><span>{gLabel(t, 'B')} <b className="text-orange-600">{sizeB}</b></span>{!(sizeA >= 2 && sizeB >= 2) && <span className="text-rose-500">{t('setup.groupAMin')}</span>}</div>}
+        {isAm && teams.length < 4 && <div className="mt-3 text-sm text-rose-500">{t('setup.needFourPlayers')}</div>}
       </div>
 
       <div className={card}>
-        <div className="flex items-center gap-2 mb-1"><ListOrdered size={18} className="text-blue-700" /><Bi zh={isAm ? '比赛轮数' : '循环轮次'} en="Rounds" className="font-semibold" /></div>
+        <div className="flex items-center gap-2 mb-1"><ListOrdered size={18} className="text-blue-700" /><Bi k={isAm ? 'setup.roundsPlayers' : 'setup.roundsTeams'} className="font-semibold" /></div>
         <p className="text-sm text-slate-500 mb-3">
-          {isAm ? <>建议 {Math.min(6, maxRounds)}–{maxRounds} 轮，超过后搭档会重复。<span className="text-xs text-slate-400"> Beyond {maxRounds} rounds partners repeat.</span></> : <>{isDouble ? '两组各自' : ''}打满 <b>{maxRounds}</b> 轮为完整循环。<span className="text-xs text-slate-400"> Full round robin = {maxRounds} rounds.</span></>}
+          {isAm ? <RoundsHintAm min={Math.min(6, maxRounds)} max={maxRounds} /> : <RoundsHintTeams isDouble={isDouble} max={maxRounds} />}
         </p>
         <div className="flex items-center gap-3">
           <button onClick={() => stepRounds(-1)} disabled={!canEdit} className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center disabled:opacity-40"><Minus size={16} /></button>
-          <div className="text-center"><div className="text-2xl font-bold text-blue-800 tabular-nums">{rounds}</div><div className="text-xs text-slate-400">轮 / of {maxRounds}</div></div>
+          <div className="text-center"><div className="text-2xl font-bold text-blue-800 tabular-nums">{rounds}</div><div className="text-xs text-slate-400">{t('setup.roundsOf', { max: maxRounds })}</div></div>
           <button onClick={() => stepRounds(1)} disabled={!canEdit} className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center disabled:opacity-40"><Plus size={16} /></button>
-          {rounds === maxRounds && !isAm && <span className="text-xs text-emerald-600 ml-1">完整循环 / Full</span>}
+          {rounds === maxRounds && !isAm && <span className="text-xs text-emerald-600 ml-1">{t('setup.roundsFull')}</span>}
         </div>
       </div>
 
       <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-sm text-blue-800 flex items-center gap-2">
         <Flag size={16} className="shrink-0" />
-        {isAm ? <>非固定搭档 · {rounds} 轮 → 个人累计得分排名 <span className="text-xs text-blue-500">/ Americano, ranked by points</span></>
-          : isDouble ? <>A/B 两组 × {rounds} 轮 → 每组前 {advancePerGroup} 名 → {advancePerGroup === 2 ? '交叉半决赛 → 决赛' : '两冠军决赛'} <span className="text-xs text-blue-500">/ Two groups → knockout</span></>
-            : <>{rounds} 轮单循环 → 前 {teams.length >= 4 ? 4 : 2} 名 → {teams.length >= 4 ? '半决赛 → 决赛' : '决赛'} <span className="text-xs text-blue-500">/ Round robin → knockout</span></>}
+        {isAm
+          ? <SummaryAmericano rounds={rounds} />
+          : isDouble
+            ? <SummaryDouble rounds={rounds} adv={advancePerGroup} next={nextStep} />
+            : <SummarySingle rounds={rounds} n={teams.length >= 4 ? 4 : 2} next={nextStep} />}
       </div>
 
       <button onClick={onStart} disabled={!canEdit || !canStart} className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-40 disabled:from-slate-400 disabled:to-slate-400 text-white font-semibold rounded-xl py-3.5 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 transition-all">
-        生成赛程，开始比赛 <span className="text-xs font-normal opacity-80">Generate &amp; Start</span> <ArrowRight size={18} />
+        {bi('setup.start').primary} {lang === 'bilingual' && <span className="text-xs font-normal opacity-80">{bi('setup.start').secondary}</span>} <ArrowRight size={18} />
       </button>
     </div>
   );
 }
 
-function ModeCard({ active, onClick, zh, en, desc }) {
+function RoundsHintAm({ min, max }) {
+  const { lang, bi } = useT();
+  const primary = bi('setup.roundsHintAm', { min, max }).primary;
+  const caption = bi('setup.roundsHintAmCaption', { max }).secondary;
+  return <>{primary}{lang === 'bilingual' && <span className="text-xs text-slate-400"> {caption}</span>}</>;
+}
+function RoundsHintTeams({ isDouble, max }) {
+  const { lang, bi } = useT();
+  const k = isDouble ? 'setup.roundsHintDouble' : 'setup.roundsHintSingle';
+  const { primary, secondary } = bi(k, { max });
+  return <>{primary}{lang === 'bilingual' && <span className="text-xs text-slate-400"> {secondary}</span>}</>;
+}
+function SummaryAmericano({ rounds }) {
+  const { lang, bi } = useT();
+  const primary = bi('setup.summaryAmericano', { rounds }).primary;
+  const caption = bi('setup.summaryAmericanoCaption').secondary;
+  return <>{primary} {lang === 'bilingual' && <span className="text-xs text-blue-500">/ {caption}</span>}</>;
+}
+function SummaryDouble({ rounds, adv, next }) {
+  const { lang, bi } = useT();
+  const primary = bi('setup.summaryDouble', { rounds, adv, next }).primary;
+  const caption = bi('setup.summaryDoubleCaption').secondary;
+  return <>{primary} {lang === 'bilingual' && <span className="text-xs text-blue-500">/ {caption}</span>}</>;
+}
+function SummarySingle({ rounds, n, next }) {
+  const { lang, bi } = useT();
+  const primary = bi('setup.summarySingle', { rounds, n, next }).primary;
+  const caption = bi('setup.summarySingleCaption').secondary;
+  return <>{primary} {lang === 'bilingual' && <span className="text-xs text-blue-500">/ {caption}</span>}</>;
+}
+
+function ModeCard({ active, onClick, k, descKey }) {
+  const { bi, t } = useT();
+  const { primary, secondary } = bi(k);
   return (
     <button onClick={onClick} className={`text-left rounded-xl border p-4 transition-all ${active ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-white ring-1 ring-blue-500/20 shadow-sm shadow-blue-500/10' : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow-sm'}`}>
-      <div className={`font-bold ${active ? 'text-blue-800' : 'text-slate-800'}`}>{zh}</div>
-      <div className={`text-xs font-semibold tracking-wide ${active ? 'text-blue-500' : 'text-slate-400'}`}>{en}</div>
-      <div className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">{desc}</div>
+      <div className={`font-bold ${active ? 'text-blue-800' : 'text-slate-800'}`}>{primary}</div>
+      {secondary && <div className={`text-xs font-semibold tracking-wide ${active ? 'text-blue-500' : 'text-slate-400'}`}>{secondary}</div>}
+      <div className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">{t(descKey)}</div>
     </button>
   );
 }
@@ -798,16 +908,17 @@ function ModeCard({ active, onClick, zh, en, desc }) {
 function GroupView(p) {
   const { mode, schedules, results, activeGroup, setActiveGroup, activeRound, setActiveRound, saveScore, clearScore,
     standingsSingle, standingsA, standingsB, advancePerGroup, progress, groupDone, defaultSets, canEdit = true, onGoKnockout } = p;
+  const { t, bi } = useT();
   const rounds = schedules[activeGroup] || [];
   const isDouble = mode === 'double';
   const switchGroup = (g) => { setActiveGroup(g); setActiveRound(0); };
   return (
     <div className="grid lg:grid-cols-5 gap-6">
       <div className="lg:col-span-3 space-y-4">
-        <ProgressBar done={progress.done} total={progress.total} zh="循环赛进度" en="Progress" />
+        <ProgressBar done={progress.done} total={progress.total} k="group.progress" />
         {isDouble && (
           <div className="flex gap-2">
-            {['A', 'B'].map((g) => <button key={g} onClick={() => switchGroup(g)} className={`flex-1 py-2 rounded-lg font-semibold text-sm ${activeGroup === g ? (g === 'A' ? 'bg-sky-600 text-white' : 'bg-orange-500 text-white') : 'bg-white border border-slate-200 text-slate-500'}`}>{g} 组 · Group {g}</button>)}
+            {['A', 'B'].map((g) => <button key={g} onClick={() => switchGroup(g)} className={`flex-1 py-2 rounded-lg font-semibold text-sm ${activeGroup === g ? (g === 'A' ? 'bg-sky-600 text-white' : 'bg-orange-500 text-white') : 'bg-white border border-slate-200 text-slate-500'}`}>{t('group.groupButton', { g })}</button>)}
           </div>
         )}
         <RoundTabs count={rounds.length} active={activeRound} onPick={setActiveRound} isDone={(ri) => rounds[ri].every((m, mi) => m.bye || results[key(activeGroup, ri, mi)]?.done)} />
@@ -817,35 +928,46 @@ function GroupView(p) {
             : <ScoreCard key={mi} aName={m.a} bName={m.b} res={results[key(activeGroup, activeRound, mi)]} defaultSets={defaultSets} readOnly={!canEdit} onSave={(sets) => saveScore(activeGroup, activeRound, mi, sets)} onClear={() => clearScore(activeGroup, activeRound, mi)} />)}
         </div>
         {groupDone
-          ? <button onClick={onGoKnockout} className="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-bold rounded-xl py-3.5 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30 transition-all"><Flag size={18} /> 进入淘汰赛 <span className="text-xs font-medium opacity-80">Go to Knockout</span></button>
-          : <p className="text-center text-sm text-slate-400">录完全部场次后进入淘汰赛 · Finish all matches to continue</p>}
+          ? <GoKnockoutButton onClick={onGoKnockout} />
+          : <p className="text-center text-sm text-slate-400">{t('group.finishHint')}</p>}
       </div>
       <div className="lg:col-span-2 space-y-4">
         {isDouble
-          ? <><StandingsTable zh="A 组积分榜" en="Group A" standings={standingsA} qualifyCount={advancePerGroup} accent="sky" /><StandingsTable zh="B 组积分榜" en="Group B" standings={standingsB} qualifyCount={advancePerGroup} accent="orange" /></>
-          : <StandingsTable zh="积分榜" en="Standings" standings={standingsSingle} qualifyCount={standingsSingle.length >= 4 ? 4 : 2} accent="blue" />}
+          ? <><StandingsTable k="group.standingsA" standings={standingsA} qualifyCount={advancePerGroup} accent="sky" /><StandingsTable k="group.standingsB" standings={standingsB} qualifyCount={advancePerGroup} accent="orange" /></>
+          : <StandingsTable k="group.standings" standings={standingsSingle} qualifyCount={standingsSingle.length >= 4 ? 4 : 2} accent="blue" />}
         <ByePanel standings={isDouble ? [...standingsA, ...standingsB] : standingsSingle} />
       </div>
     </div>
   );
 }
 
+function GoKnockoutButton({ onClick }) {
+  const { bi } = useT();
+  const { primary, secondary } = bi('group.goKnockout');
+  return (
+    <button onClick={onClick} className="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-bold rounded-xl py-3.5 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30 transition-all">
+      <Flag size={18} /> {primary} {secondary && <span className="text-xs font-medium opacity-80">{secondary}</span>}
+    </button>
+  );
+}
+
 /* ============ 非固定搭档（Americano）页 ============ */
 function AmericanoView({ amSchedule, amResults, amRound, setAmRound, saveAm, clearAm, leaderboard, progress, canEdit = true }) {
+  const { t, bi } = useT();
   const rd = amSchedule[amRound];
   const done = progress.total > 0 && progress.done === progress.total;
   return (
     <div className="grid lg:grid-cols-5 gap-6">
       <div className="lg:col-span-3 space-y-4">
-        <ProgressBar done={progress.done} total={progress.total} zh="比赛进度" en="Progress" />
+        <ProgressBar done={progress.done} total={progress.total} k="americano.progress" />
         <RoundTabs count={amSchedule.length} active={amRound} onPick={setAmRound} isDone={(ri) => amSchedule[ri].courts.every((_, ci) => amResults[`${ri}-${ci}`]?.done)} />
         <div className="space-y-3">
           {rd?.courts.map((c, ci) => (
-            <CourtCard key={ci} label={`球场 ${ci + 1} · Court ${ci + 1}`} court={c} res={amResults[`${amRound}-${ci}`]} readOnly={!canEdit} onSave={(s1, s2) => saveAm(amRound, ci, s1, s2)} onClear={() => clearAm(amRound, ci)} />
+            <CourtCard key={ci} label={t('americano.court', { n: ci + 1 })} court={c} res={amResults[`${amRound}-${ci}`]} readOnly={!canEdit} onSave={(s1, s2) => saveAm(amRound, ci, s1, s2)} onClear={() => clearAm(amRound, ci)} />
           ))}
           {rd?.byes.length > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-2 flex-wrap">
-              <Coffee size={18} className="text-amber-600" /><span className="text-sm text-amber-700">本轮轮空 / Bye：</span>
+              <Coffee size={18} className="text-amber-600" /><span className="text-sm text-amber-700">{t('americano.byeLine')}</span>
               {rd.byes.map((b) => <span key={b} className="text-sm font-medium text-amber-800">{b}</span>)}
             </div>
           )}
@@ -853,9 +975,9 @@ function AmericanoView({ amSchedule, amResults, amRound, setAmRound, saveAm, cle
       </div>
       <div className="lg:col-span-2 space-y-4">
         <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm shadow-slate-300/40 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2"><Medal size={17} className="text-blue-700" /><Bi zh="个人排名" en="Leaderboard" className="font-semibold" /></div>
+          <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2"><Medal size={17} className="text-blue-700" /><Bi k="americano.leaderboard" className="font-semibold" /></div>
           <table className="w-full text-sm">
-            <thead><tr className="text-slate-400 text-xs"><Th zh="#" en="" /><Th zh="选手" en="Player" left /><Th zh="场" en="GP" /><Th zh="胜" en="W" /><Th zh="总分" en="Pts" pr /></tr></thead>
+            <thead><tr className="text-slate-400 text-xs"><Th k="th.rank" noSecondary /><Th k="th.player" left /><Th k="th.gp" /><Th k="th.win" /><Th k="th.ptsTotal" pr /></tr></thead>
             <tbody>
               {leaderboard.map((s, i) => (
                 <tr key={s.name} className={`border-t border-slate-50 ${i === 0 ? 'bg-amber-50' : i < 3 ? 'bg-amber-50/40' : ''}`}>
@@ -872,9 +994,9 @@ function AmericanoView({ amSchedule, amResults, amRound, setAmRound, saveAm, cle
         {done && leaderboard[0] && (
           <div className="bg-gradient-to-b from-amber-50 to-white border border-amber-200 rounded-2xl shadow-lg shadow-amber-300/30 ring-1 ring-amber-100 p-6 text-center">
             <Crown size={34} className="mx-auto text-amber-400 mb-1" />
-            <div className="text-sm text-amber-600 font-medium">🏆 总冠军 · Champion</div>
+            <div className="text-sm text-amber-600 font-medium">🏆 {t('americano.champion')}</div>
             <div className="text-xl font-bold text-blue-900">{leaderboard[0].name}</div>
-            <div className="text-slate-400 text-sm mt-1">{leaderboard[0].points} 分 / pts</div>
+            <div className="text-slate-400 text-sm mt-1">{leaderboard[0].points} {t('americano.pts')}</div>
           </div>
         )}
       </div>
@@ -883,6 +1005,7 @@ function AmericanoView({ amSchedule, amResults, amRound, setAmRound, saveAm, cle
 }
 
 function CourtCard({ label, court, res, onSave, onClear, readOnly = false }) {
+  const { t } = useT();
   const [s1, setS1] = useState(res ? String(res.s1) : '');
   const [s2, setS2] = useState(res ? String(res.s2) : '');
   const done = res?.done;
@@ -906,8 +1029,8 @@ function CourtCard({ label, court, res, onSave, onClear, readOnly = false }) {
         <div className="flex-1 min-w-0 truncate text-right">{team(court.t2, win2)}</div>
       </div>
       <div className="mt-3 flex items-center justify-center gap-3 text-sm">
-        {done ? <><span className="flex items-center gap-1 text-emerald-600"><Check size={14} /> 已记录 Saved</span>{!readOnly && <button onClick={onClear} className="text-slate-400 hover:text-blue-700">修改 Edit</button>}</>
-          : !readOnly && <button onClick={commit} className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-4 py-1.5 rounded-lg">记录比分 · Save</button>}
+        {done ? <><span className="flex items-center gap-1 text-emerald-600"><Check size={14} /> {t('score.saved')}</span>{!readOnly && <button onClick={onClear} className="text-slate-400 hover:text-blue-700">{t('score.edit')}</button>}</>
+          : !readOnly && <button onClick={commit} className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-4 py-1.5 rounded-lg">{t('score.save')}</button>}
       </div>
     </div>
   );
@@ -915,30 +1038,31 @@ function CourtCard({ label, court, res, onSave, onClear, readOnly = false }) {
 
 /* ============ 淘汰赛页 ============ */
 function KnockoutView({ bracket, ko, setKo, defaultSets, canEdit = true, onBack }) {
+  const { t, d } = useT();
   const save = (k, sets) => { if (!canEdit) return; setKo((p) => ({ ...p, [k]: { sets, done: true } })); };
   const clear = (k) => { if (!canEdit) return; setKo((p) => { const n = { ...p }; delete n[k]; return n; }); };
-  if (bracket.kind === 'none') return <div className="text-center text-slate-500"><button onClick={onBack} className="text-sm hover:text-blue-700">← 返回 Back</button><p className="mt-6">出线队伍不足，无法组织淘汰赛。<br /><span className="text-xs text-slate-400">Not enough qualifiers for knockout.</span></p></div>;
+  if (bracket.kind === 'none') return <div className="text-center text-slate-500"><button onClick={onBack} className="text-sm hover:text-blue-700">{t('knockout.back')}</button><p className="mt-6">{t('knockout.notEnough')}</p></div>;
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <button onClick={onBack} className="text-sm text-slate-500 hover:text-blue-700">← 返回循环赛 · Back</button>
+      <button onClick={onBack} className="text-sm text-slate-500 hover:text-blue-700">{t('knockout.backToGroup')}</button>
       {bracket.kind === 'semis' && (
         <>
-          <SectionTitle icon={<Swords size={20} />} zh="半决赛" en="Semifinals" sub="胜者进决赛，负者争季军 · Winners → final, losers → 3rd" />
+          <SectionTitle icon={<Swords size={20} />} k="knockout.semis" subKey="knockout.semisSub" />
           <div className="grid sm:grid-cols-2 gap-3">
-            <KOMatch label={`半决赛 A · ${bracket.sf1.aLabel} vs ${bracket.sf1.bLabel}`} aName={bracket.sf1.a} bName={bracket.sf1.b} res={ko.sf1} defaultSets={defaultSets} readOnly={!canEdit} onSave={(s) => save('sf1', s)} onClear={() => clear('sf1')} />
-            <KOMatch label={`半决赛 B · ${bracket.sf2.aLabel} vs ${bracket.sf2.bLabel}`} aName={bracket.sf2.a} bName={bracket.sf2.b} res={ko.sf2} defaultSets={defaultSets} readOnly={!canEdit} onSave={(s) => save('sf2', s)} onClear={() => clear('sf2')} />
+            <KOMatch label={`${d('knockout.semiA')} · ${seedLabel(d, bracket.sf1.aSeed)} vs ${seedLabel(d, bracket.sf1.bSeed)}`} aName={bracket.sf1.a} bName={bracket.sf1.b} res={ko.sf1} defaultSets={defaultSets} readOnly={!canEdit} onSave={(s) => save('sf1', s)} onClear={() => clear('sf1')} />
+            <KOMatch label={`${d('knockout.semiB')} · ${seedLabel(d, bracket.sf2.aSeed)} vs ${seedLabel(d, bracket.sf2.bSeed)}`} aName={bracket.sf2.a} bName={bracket.sf2.b} res={ko.sf2} defaultSets={defaultSets} readOnly={!canEdit} onSave={(s) => save('sf2', s)} onClear={() => clear('sf2')} />
           </div>
-          <SectionTitle icon={<Flag size={20} />} zh="决赛 & 季军赛" en="Final & 3rd Place" sub="由半决赛结果自动填入 · Auto-filled from semis" />
+          <SectionTitle icon={<Flag size={20} />} k="knockout.finalAndThird" subKey="knockout.finalAndThirdSub" />
           <div className="grid sm:grid-cols-2 gap-3">
-            <KOMatch label="🏆 决赛 · Final" aName={bracket.final.a} bName={bracket.final.b} res={ko.final} defaultSets={defaultSets} readOnly={!canEdit} onSave={(s) => save('final', s)} onClear={() => clear('final')} pending={bracket.final.pending} pendingText="等待半决赛结束 · Awaiting semifinals" big />
-            <KOMatch label="🥉 季军赛 · 3rd Place" aName={bracket.third.a} bName={bracket.third.b} res={ko.third} defaultSets={defaultSets} readOnly={!canEdit} onSave={(s) => save('third', s)} onClear={() => clear('third')} pending={bracket.third.pending} pendingText="等待半决赛结束 · Awaiting semifinals" />
+            <KOMatch label={t('knockout.final')} aName={bracket.final.a} bName={bracket.final.b} res={ko.final} defaultSets={defaultSets} readOnly={!canEdit} onSave={(s) => save('final', s)} onClear={() => clear('final')} pending={bracket.final.pending} pendingText={t('knockout.awaitingSemis')} big />
+            <KOMatch label={t('knockout.thirdPlace')} aName={bracket.third.a} bName={bracket.third.b} res={ko.third} defaultSets={defaultSets} readOnly={!canEdit} onSave={(s) => save('third', s)} onClear={() => clear('third')} pending={bracket.third.pending} pendingText={t('knockout.awaitingSemis')} />
           </div>
         </>
       )}
       {bracket.kind === 'final' && (
         <>
-          <SectionTitle icon={<Flag size={20} />} zh="总决赛" en="Grand Final" sub={`${bracket.final.aLabel} vs ${bracket.final.bLabel}`} />
-          <KOMatch label="🏆 决赛 · Final" aName={bracket.final.a} bName={bracket.final.b} res={ko.final} defaultSets={defaultSets} readOnly={!canEdit} onSave={(s) => save('final', s)} onClear={() => clear('final')} big />
+          <SectionTitle icon={<Flag size={20} />} k="knockout.grandFinal" sub={`${seedLabel(d, bracket.final.aSeed)} vs ${seedLabel(d, bracket.final.bSeed)}`} />
+          <KOMatch label={t('knockout.final')} aName={bracket.final.a} bName={bracket.final.b} res={ko.final} defaultSets={defaultSets} readOnly={!canEdit} onSave={(s) => save('final', s)} onClear={() => clear('final')} big />
         </>
       )}
       {bracket.champion && <ChampionBlock champ={bracket.champion} res={ko.final} runnerUp={bracket.runnerUp} third={bracket.thirdPlace} />}
@@ -946,59 +1070,71 @@ function KnockoutView({ bracket, ko, setKo, defaultSets, canEdit = true, onBack 
   );
 }
 
-function SectionTitle({ icon, zh, en, sub }) {
-  return <div className="flex items-center gap-2 text-blue-800">{icon}<div><div className="font-bold leading-tight">{zh} <span className="text-xs font-normal text-slate-400 tracking-wide">{en}</span></div><div className="text-xs text-slate-400 font-normal">{sub}</div></div></div>;
+function SectionTitle({ icon, k, subKey, sub }) {
+  const { bi, t } = useT();
+  const { primary, secondary } = bi(k);
+  const subText = sub ?? (subKey ? t(subKey) : null);
+  return <div className="flex items-center gap-2 text-blue-800">{icon}<div><div className="font-bold leading-tight">{primary} {secondary && <span className="text-xs font-normal text-slate-400 tracking-wide">{secondary}</span>}</div>{subText && <div className="text-xs text-slate-400 font-normal">{subText}</div>}</div></div>;
 }
 
 function ChampionBlock({ champ, res, runnerUp, third }) {
+  const { t } = useT();
   return (
     <div className="space-y-4 pt-2">
       <div className="bg-gradient-to-b from-amber-50 to-white border border-amber-200 rounded-2xl shadow-lg shadow-amber-300/30 ring-1 ring-amber-100 p-8 text-center">
-        <Crown size={40} className="mx-auto text-amber-400 mb-2" /><div className="text-sm text-amber-600 font-medium mb-1">🏆 冠军 · Champion</div>
+        <Crown size={40} className="mx-auto text-amber-400 mb-2" /><div className="text-sm text-amber-600 font-medium mb-1">🏆 {t('knockout.champion')}</div>
         <div className="text-2xl font-bold text-blue-900">{champ}</div>
-        {res?.done && <div className="text-slate-400 text-sm mt-2 tabular-nums">决赛盘分 / Score {setsStr(res)}</div>}
+        {res?.done && <div className="text-slate-400 text-sm mt-2 tabular-nums">{t('knockout.finalScore')} {setsStr(res)}</div>}
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <Podium zh="亚军" en="Runner-up" team={runnerUp} icon={<Medal className="text-slate-400" />} color="text-slate-500" />
-        {third && <Podium zh="季军" en="3rd Place" team={third} icon={<Medal className="text-amber-600" />} color="text-amber-700" />}
+        <Podium k="knockout.runnerUp" team={runnerUp} icon={<Medal className="text-slate-400" />} color="text-slate-500" />
+        {third && <Podium k="knockout.thirdPlaceShort" team={third} icon={<Medal className="text-amber-600" />} color="text-amber-700" />}
       </div>
     </div>
   );
 }
 
 /* ============ 共用小组件 ============ */
-function ProgressBar({ done, total, zh, en }) {
+function ProgressBar({ done, total, k }) {
+  const { bi } = useT();
+  const { primary, secondary } = bi(k);
   return (
     <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm shadow-slate-300/40 p-4">
-      <div className="flex items-center justify-between text-sm mb-2"><span className="font-medium text-slate-600">{zh} <span className="text-xs text-slate-400">{en}</span></span><span className="text-slate-500">{done} / {total}</span></div>
+      <div className="flex items-center justify-between text-sm mb-2"><span className="font-medium text-slate-600">{primary} {secondary && <span className="text-xs text-slate-400">{secondary}</span>}</span><span className="text-slate-500">{done} / {total}</span></div>
       <div className="h-2 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-amber-400 transition-all" style={{ width: `${total ? (done / total) * 100 : 0}%` }} /></div>
     </div>
   );
 }
 function RoundTabs({ count, active, onPick, isDone }) {
+  const { lang, d, t } = useT();
   return (
     <div className="flex gap-2 overflow-x-auto pb-1">
       {Array.from({ length: count }).map((_, ri) => (
         <button key={ri} onClick={() => onPick(ri)} className={`shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 ${active === ri ? 'bg-blue-700 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-blue-400'}`}>
-          <span>第 {ri + 1} 轮<span className="text-[10px] opacity-60 ml-1">R{ri + 1}</span></span>{isDone(ri) && <Check size={13} className={active === ri ? 'text-amber-300' : 'text-emerald-500'} />}
+          <span>{d('group.roundTab', { n: ri + 1 })}{lang === 'bilingual' && <span className="text-[10px] opacity-60 ml-1">{t('group.roundTabShort', { n: ri + 1 })}</span>}</span>{isDone(ri) && <Check size={13} className={active === ri ? 'text-amber-300' : 'text-emerald-500'} />}
         </button>
       ))}
     </div>
   );
 }
-function ByeRow({ name }) { return <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3"><Coffee size={18} className="text-amber-600" /><span className="font-medium text-amber-800">{name}</span><span className="text-sm text-amber-600">本轮轮空 · Bye</span></div>; }
+function ByeRow({ name }) {
+  const { t } = useT();
+  return <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3"><Coffee size={18} className="text-amber-600" /><span className="font-medium text-amber-800">{name}</span><span className="text-sm text-amber-600">{t('common.bye')}</span></div>;
+}
 
 function KOMatch({ label, aName, bName, res, onSave, onClear, pending, pendingText, big, defaultSets, readOnly = false }) {
+  const { t } = useT();
   return (
     <div className="space-y-1.5">
       {label && <div className="text-xs font-medium text-slate-500">{label}</div>}
-      {pending ? <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center text-sm text-slate-400">{pendingText || '待定'}</div>
+      {pending ? <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center text-sm text-slate-400">{pendingText || t('knockout.pending')}</div>
         : <ScoreCard key={`${aName}-${bName}`} aName={aName} bName={bName} res={res} defaultSets={defaultSets} readOnly={readOnly} onSave={onSave} onClear={onClear} big />}
     </div>
   );
 }
 
 function ScoreCard({ aName, bName, res, onSave, onClear, big, defaultSets = 1, readOnly = false }) {
+  const { t } = useT();
   const init = res?.sets?.length ? res.sets.map((s) => ({ a: String(s.a), b: String(s.b) })) : Array.from({ length: defaultSets }, () => ({ a: '', b: '' }));
   const [sets, setSets] = useState(init);
   const done = res?.done;
@@ -1017,21 +1153,21 @@ function ScoreCard({ aName, bName, res, onSave, onClear, big, defaultSets = 1, r
         <TeamSide name={bName} win={o?.winner === 'b'} align="right" />
       </div>
       {done ? (
-        <div className="flex items-center justify-center gap-3 text-sm"><span className="flex items-center gap-1 text-emerald-600"><Check size={14} /> 已记录 Saved</span>{!readOnly && <button onClick={onClear} className="text-slate-400 hover:text-blue-700">修改 Edit</button>}</div>
+        <div className="flex items-center justify-center gap-3 text-sm"><span className="flex items-center gap-1 text-emerald-600"><Check size={14} /> {t('score.saved')}</span>{!readOnly && <button onClick={onClear} className="text-slate-400 hover:text-blue-700">{t('score.edit')}</button>}</div>
       ) : (
         <div className="space-y-1.5">
           {sets.map((s, i) => (
             <div key={i} className="flex items-center justify-center gap-2">
-              <span className="w-16 text-right text-xs text-slate-400">第 {i + 1} 盘 · Set {i + 1}</span>
+              <span className="w-16 text-right text-xs text-slate-400">{t('score.setN', { n: i + 1 })}</span>
               <input value={s.a} onChange={(e) => setVal(i, 'a', e.target.value)} disabled={readOnly} inputMode="numeric" placeholder="0" className="w-12 text-center border border-slate-300 rounded-lg py-1.5 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400" />
               <span className="text-slate-300">:</span>
               <input value={s.b} onChange={(e) => setVal(i, 'b', e.target.value)} disabled={readOnly} inputMode="numeric" placeholder="0" className="w-12 text-center border border-slate-300 rounded-lg py-1.5 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400" />
-              {!readOnly && sets.length > 1 ? <button onClick={() => removeSet(i)} title="删除此盘" className="text-slate-300 hover:text-rose-500"><X size={14} /></button> : <span className="w-3.5" />}
+              {!readOnly && sets.length > 1 ? <button onClick={() => removeSet(i)} title={t('score.removeSetTooltip')} className="text-slate-300 hover:text-rose-500"><X size={14} /></button> : <span className="w-3.5" />}
             </div>
           ))}
           <div className="flex items-center justify-center gap-3 pt-1">
-            {!readOnly && sets.length < 3 && <button onClick={addSet} className="text-xs text-blue-700 hover:text-blue-900 flex items-center gap-0.5"><Plus size={13} /> 加一盘 Add set</button>}
-            {!readOnly && <button onClick={commit} className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 py-1.5 rounded-lg">记录比分 · Save</button>}
+            {!readOnly && sets.length < 3 && <button onClick={addSet} className="text-xs text-blue-700 hover:text-blue-900 flex items-center gap-0.5"><Plus size={13} /> {t('score.addSet')}</button>}
+            {!readOnly && <button onClick={commit} className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 py-1.5 rounded-lg">{t('score.save')}</button>}
           </div>
         </div>
       )}
@@ -1042,16 +1178,19 @@ function TeamSide({ name, win, align }) {
   return <div className={`flex-1 min-w-0 ${align === 'right' ? 'text-right' : 'text-left'}`}><span className={`inline-block truncate max-w-full font-medium ${win ? 'text-blue-800' : 'text-slate-700'}`}>{win && <Crown size={13} className="inline mr-1 text-amber-400 -mt-0.5" />}{name}</span></div>;
 }
 
-function Th({ zh, en, left, pr }) {
-  return <th className={`font-medium py-2 ${left ? 'text-left' : 'text-center'} ${pr ? 'pr-4' : ''} ${zh === '#' ? 'pl-4 text-left' : ''}`}><div>{zh}</div>{en && <div className="text-[9px] opacity-70 font-normal">{en}</div>}</th>;
+function Th({ k, left, pr, noSecondary }) {
+  const { bi } = useT();
+  const { primary, secondary } = bi(k);
+  return <th className={`font-medium py-2 ${left ? 'text-left' : 'text-center'} ${pr ? 'pr-4' : ''} ${primary === '#' ? 'pl-4 text-left' : ''}`}><div>{primary}</div>{!noSecondary && secondary && <div className="text-[9px] opacity-70 font-normal">{secondary}</div>}</th>;
 }
-function StandingsTable({ zh, en, standings, qualifyCount, accent }) {
+function StandingsTable({ k, standings, qualifyCount, accent }) {
+  const { t } = useT();
   const bar = accent === 'orange' ? 'text-orange-600' : accent === 'sky' ? 'text-sky-600' : 'text-blue-700';
   return (
     <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm shadow-slate-300/40 overflow-hidden">
-      <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2"><Medal size={17} className={bar} /><Bi zh={zh} en={en} className="font-semibold" /></div>
+      <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2"><Medal size={17} className={bar} /><Bi k={k} className="font-semibold" /></div>
       <table className="w-full text-sm">
-        <thead><tr className="text-slate-400 text-xs"><Th zh="#" en="" /><Th zh="队伍" en="Team" left /><Th zh="胜" en="W" /><Th zh="负" en="L" /><Th zh="局差" en="Diff" /><Th zh="积分" en="Pts" pr /></tr></thead>
+        <thead><tr className="text-slate-400 text-xs"><Th k="th.rank" noSecondary /><Th k="th.team" left /><Th k="th.win" /><Th k="th.loss" /><Th k="th.diff" /><Th k="th.pts" pr /></tr></thead>
         <tbody>
           {standings.map((s, i) => (
             <tr key={s.team} className={`border-t border-slate-50 ${i < qualifyCount ? 'bg-amber-50' : ''}`}>
@@ -1065,32 +1204,36 @@ function StandingsTable({ zh, en, standings, qualifyCount, accent }) {
           ))}
         </tbody>
       </table>
-      <p className="px-4 py-2 text-[11px] text-slate-400 border-t border-slate-100">前 {qualifyCount} 名（金色）出线 · Top {qualifyCount} advance</p>
+      <p className="px-4 py-2 text-[11px] text-slate-400 border-t border-slate-100">{t('common.qualifyNote', { n: qualifyCount })}</p>
     </div>
   );
 }
 function ByePanel({ standings }) {
+  const { t } = useT();
   if (!standings.some((s) => s.byes > 0)) return null;
   return (
     <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm shadow-slate-300/40 p-4">
-      <div className="flex items-center gap-2 mb-2"><Coffee size={16} className="text-amber-600" /><Bi zh="轮空统计" en="Byes" className="font-semibold" /></div>
-      <p className="text-xs text-slate-400 mb-3">每队轮空次数相差不超过 1 · Byes differ by ≤ 1.</p>
+      <div className="flex items-center gap-2 mb-2"><Coffee size={16} className="text-amber-600" /><Bi k="common.byesTitle" className="font-semibold" /></div>
+      <p className="text-xs text-slate-400 mb-3">{t('common.byesNote')}</p>
       <div className="flex flex-wrap gap-2">{standings.map((s) => <span key={s.team} className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1">{s.team} <b className="text-amber-600">{s.byes}</b></span>)}</div>
     </div>
   );
 }
-function Podium({ zh, en, team, color, icon }) {
-  return <div className="bg-white border border-slate-200/70 shadow-sm shadow-slate-300/40 rounded-xl p-4 text-center"><div className="flex justify-center mb-1">{icon}</div><div className={`text-xs font-medium ${color}`}>{zh} <span className="opacity-60">{en}</span></div><div className="font-semibold text-slate-700 truncate mt-0.5">{team}</div></div>;
+function Podium({ k, team, color, icon }) {
+  const { bi } = useT();
+  const { primary, secondary } = bi(k);
+  return <div className="bg-white border border-slate-200/70 shadow-sm shadow-slate-300/40 rounded-xl p-4 text-center"><div className="flex justify-center mb-1">{icon}</div><div className={`text-xs font-medium ${color}`}>{primary} {secondary && <span className="opacity-60">{secondary}</span>}</div><div className="font-semibold text-slate-700 truncate mt-0.5">{team}</div></div>;
 }
 
 /* ============ 大屏 ============ */
 function BigScreen({ title, mode, groups, bracket, results, amSchedule, amResults, amLeaderboard, onClose }) {
+  const { lang, t, bi } = useT();
   const isAm = mode === 'americano';
   const [tab, setTab] = useState('fixtures');
   const [view, setView] = useState('all');
   const [gi, setGi] = useState(0);
   const [ri, setRi] = useState(0);
-  const tabs = isAm ? [['fixtures', '对战赛程', 'Fixtures'], ['standings', '个人排名', 'Leaderboard']] : [['fixtures', '对战赛程', 'Fixtures'], ['standings', '积分榜', 'Standings'], ['bracket', '淘汰赛', 'Bracket']];
+  const tabs = isAm ? [['fixtures', 'big.tabFixtures'], ['standings', 'big.tabLeaderboard']] : [['fixtures', 'big.tabFixtures'], ['standings', 'big.tabStandings'], ['bracket', 'big.tabBracket']];
   const roundsCount = isAm ? amSchedule.length : (groups[gi]?.rounds.length || 0);
   const rIdx = Math.min(ri, Math.max(0, roundsCount - 1));
 
@@ -1099,8 +1242,8 @@ function BigScreen({ title, mode, groups, bracket, results, amSchedule, amResult
       const rd = amSchedule[ri2]; if (!rd) return null;
       return (
         <div className="grid sm:grid-cols-2 gap-3">
-          {rd.courts.map((c, ci) => <BigCourt key={ci} court={c} res={amResults[`${ri2}-${ci}`]} label={`球场 ${ci + 1} · Court ${ci + 1}`} />)}
-          {rd.byes.length > 0 && <div className="sm:col-span-2 text-amber-200 text-sm flex items-center gap-2 flex-wrap"><Coffee size={16} /> 轮空 Bye：{rd.byes.join('、')}</div>}
+          {rd.courts.map((c, ci) => <BigCourt key={ci} court={c} res={amResults[`${ri2}-${ci}`]} label={t('big.court', { n: ci + 1 })} />)}
+          {rd.byes.length > 0 && <div className="sm:col-span-2 text-amber-200 text-sm flex items-center gap-2 flex-wrap"><Coffee size={16} /> {t('big.byeLine', { names: rd.byes.join(lang === 'bilingual' ? '、' : ', ') })}</div>}
         </div>
       );
     }
@@ -1115,21 +1258,21 @@ function BigScreen({ title, mode, groups, bracket, results, amSchedule, amResult
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <div className="bg-amber-400 text-blue-900 rounded-2xl p-3"><Trophy size={36} /></div>
-            <div><div className="text-3xl sm:text-5xl font-black tracking-tight">{title}</div><div className="text-amber-300/80 text-sm tracking-[0.35em] uppercase mt-1">Live Scoreboard</div></div>
+            <div><div className="text-3xl sm:text-5xl font-black tracking-tight">{title}</div><div className="text-amber-300/80 text-sm tracking-[0.35em] uppercase mt-1">{t('big.liveScoreboard')}</div></div>
           </div>
-          <button onClick={onClose} className="bg-white/10 hover:bg-white/20 rounded-full p-3"><X size={28} /></button>
+          <button onClick={onClose} aria-label={t('big.close')} className="bg-white/10 hover:bg-white/20 rounded-full p-3"><X size={28} /></button>
         </div>
 
         <div className="flex flex-wrap gap-2 mb-6">
-          {tabs.map(([k, zh, en]) => <button key={k} onClick={() => setTab(k)} className={`px-5 py-2.5 rounded-full text-base font-semibold ${tab === k ? 'bg-amber-400 text-blue-900' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>{zh} <span className="text-xs font-normal opacity-70">{en}</span></button>)}
+          {tabs.map(([tk, labelKey]) => { const { primary, secondary } = bi(labelKey); return <button key={tk} onClick={() => setTab(tk)} className={`px-5 py-2.5 rounded-full text-base font-semibold ${tab === tk ? 'bg-amber-400 text-blue-900' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>{primary} {secondary && <span className="text-xs font-normal opacity-70">{secondary}</span>}</button>; })}
         </div>
 
         {tab === 'fixtures' && (
           <>
             <div className="flex flex-wrap items-center gap-2 mb-5">
               <div className="flex rounded-full overflow-hidden border border-white/15">
-                <BigToggle active={view === 'all'} onClick={() => setView('all')}>全部轮次 · All</BigToggle>
-                <BigToggle active={view === 'round'} onClick={() => setView('round')}>逐轮显示 · By Round</BigToggle>
+                <BigToggle active={view === 'all'} onClick={() => setView('all')}>{t('big.viewAll')}</BigToggle>
+                <BigToggle active={view === 'round'} onClick={() => setView('round')}>{t('big.viewByRound')}</BigToggle>
               </div>
               {view === 'round' && !isAm && groups.length > 1 && (
                 <div className="flex gap-1">
@@ -1139,7 +1282,7 @@ function BigScreen({ title, mode, groups, bracket, results, amSchedule, amResult
               {view === 'round' && (
                 <div className="flex items-center gap-3 ml-auto">
                   <button onClick={() => setRi(Math.max(0, rIdx - 1))} disabled={rIdx === 0} className="bg-white/10 hover:bg-white/20 disabled:opacity-30 rounded-full p-3"><ChevronLeft size={26} /></button>
-                  <span className="text-xl sm:text-2xl font-bold tabular-nums w-56 text-center">第 {rIdx + 1} / {roundsCount} 轮 <span className="text-sm font-normal opacity-70">Round {rIdx + 1} / {roundsCount}</span></span>
+                  <RoundOfLabel n={rIdx + 1} total={roundsCount} />
                   <button onClick={() => setRi(Math.min(roundsCount - 1, rIdx + 1))} disabled={rIdx >= roundsCount - 1} className="bg-white/10 hover:bg-white/20 disabled:opacity-30 rounded-full p-3"><ChevronRight size={26} /></button>
                 </div>
               )}
@@ -1151,12 +1294,12 @@ function BigScreen({ title, mode, groups, bracket, results, amSchedule, amResult
                 {renderRound(rIdx, groups[gi]?.g)}
               </div>
             ) : (
-              (isAm ? [{ g: 'am', name: '对战 · Fixtures', rounds: amSchedule }] : groups).map((grp) => (
+              (isAm ? [{ g: 'am', name: bi('big.fixturesAm').primary, rounds: amSchedule }] : groups).map((grp) => (
                 <div key={grp.g} className="mb-8">
                   {(!isAm && groups.length > 1) && <div className="text-amber-300 font-bold text-2xl sm:text-3xl mb-4">{grp.name}</div>}
                   {(isAm ? amSchedule : grp.rounds).map((_, ri2) => (
                     <div key={ri2} className="mb-5">
-                      <div className="text-white/60 text-lg font-semibold mb-3 tracking-wide">第 {ri2 + 1} 轮 · Round {ri2 + 1}</div>
+                      <div className="text-white/60 text-lg font-semibold mb-3 tracking-wide">{t('big.roundHeader', { n: ri2 + 1 })}</div>
                       {renderRound(ri2, grp.g)}
                     </div>
                   ))}
@@ -1171,10 +1314,10 @@ function BigScreen({ title, mode, groups, bracket, results, amSchedule, amResult
           <div className={`grid ${groups.length > 1 ? 'md:grid-cols-2' : ''} gap-6`}>
             {groups.map((grp) => (
               <div key={grp.g}>
-                <div className="text-amber-300 font-bold text-2xl sm:text-3xl mb-4">{groups.length > 1 ? grp.name : '积分榜 · Standings'}</div>
+                <div className="text-amber-300 font-bold text-2xl sm:text-3xl mb-4">{groups.length > 1 ? grp.name : t('big.standingsSingle')}</div>
                 <div className="bg-white/5 rounded-2xl overflow-hidden border border-white/10">
                   <table className="w-full text-lg">
-                    <thead><tr className="text-white/40 text-sm"><th className="text-left pl-5 py-4">#</th><th className="text-left py-4">队伍 Team</th><th className="text-center py-4">胜 W</th><th className="text-center py-4">负 L</th><th className="text-center pr-5 py-4">积分 Pts</th></tr></thead>
+                    <thead><tr className="text-white/40 text-sm"><th className="text-left pl-5 py-4">#</th><th className="text-left py-4">{t('th.team')}</th><th className="text-center py-4">{t('th.win')}</th><th className="text-center py-4">{t('th.loss')}</th><th className="text-center pr-5 py-4">{t('th.pts')}</th></tr></thead>
                     <tbody>{grp.standings.map((s, i) => (
                       <tr key={s.team} className={`border-t border-white/5 ${i < grp.qc ? 'bg-amber-400/10' : ''}`}>
                         <td className="pl-5 py-4 text-white/40">{i + 1}{i < grp.qc && <span className="ml-1 text-amber-300">●</span>}</td>
@@ -1193,9 +1336,15 @@ function BigScreen({ title, mode, groups, bracket, results, amSchedule, amResult
     </div>
   );
 }
+function RoundOfLabel({ n, total }) {
+  const { lang, bi } = useT();
+  const { primary, secondary } = bi('big.roundOf', { n, total });
+  return <span className="text-xl sm:text-2xl font-bold tabular-nums w-56 text-center">{primary} {lang === 'bilingual' && <span className="text-sm font-normal opacity-70">{secondary}</span>}</span>;
+}
 function BigToggle({ active, onClick, children }) { return <button onClick={onClick} className={`px-4 py-1.5 text-sm font-semibold ${active ? 'bg-amber-400 text-blue-900' : 'text-white/70 hover:bg-white/10'}`}>{children}</button>; }
 function BigMatch({ m, res }) {
-  if (m.bye) return <div className="bg-amber-400/10 border border-amber-400/20 rounded-2xl px-6 py-5 flex items-center gap-2 text-amber-200 text-xl"><Coffee size={22} /> {m.bye} 轮空 Bye</div>;
+  const { t } = useT();
+  if (m.bye) return <div className="bg-amber-400/10 border border-amber-400/20 rounded-2xl px-6 py-5 flex items-center gap-2 text-amber-200 text-xl"><Coffee size={22} /> {m.bye} {t('big.byeShort')}</div>;
   const o = outcome(res);
   return (
     <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5">
@@ -1221,10 +1370,11 @@ function BigCourt({ court, res, label }) {
   );
 }
 function BigLeaderboard({ leaderboard }) {
+  const { t } = useT();
   return (
     <div className="bg-white/5 rounded-2xl overflow-hidden border border-white/10 max-w-4xl">
       <table className="w-full text-lg">
-        <thead><tr className="text-white/40 text-sm"><th className="text-left pl-5 py-4">#</th><th className="text-left py-4">选手 Player</th><th className="text-center py-4">场 GP</th><th className="text-center py-4">胜 W</th><th className="text-center pr-5 py-4">总分 Pts</th></tr></thead>
+        <thead><tr className="text-white/40 text-sm"><th className="text-left pl-5 py-4">#</th><th className="text-left py-4">{t('th.player')}</th><th className="text-center py-4">{t('th.gp')}</th><th className="text-center py-4">{t('th.win')}</th><th className="text-center pr-5 py-4">{t('th.ptsTotal')}</th></tr></thead>
         <tbody>{leaderboard.map((s, i) => (
           <tr key={s.name} className={`border-t border-white/5 ${i === 0 ? 'bg-amber-400/15' : i < 3 ? 'bg-amber-400/5' : ''}`}>
             <td className="pl-5 py-4 text-white/40">{i + 1}</td>
@@ -1238,58 +1388,64 @@ function BigLeaderboard({ leaderboard }) {
   );
 }
 function BigBracket({ bracket }) {
-  if (bracket.kind === 'none') return <div className="text-white/40 text-xl">循环赛结束后生成淘汰赛对阵 · Bracket appears after round robin.</div>;
+  const { t } = useT();
+  if (bracket.kind === 'none') return <div className="text-white/40 text-xl">{t('big.noBracket')}</div>;
   const Row = ({ label, a, b, res, gold }) => {
     const o = outcome(res);
     return (
       <div className={`rounded-2xl px-6 py-5 border ${gold ? 'bg-amber-400/10 border-amber-400/30' : 'bg-white/5 border-white/10'}`}>
         <div className="text-sm text-white/50 mb-2">{label}</div>
         <div className="flex items-center justify-between gap-4">
-          <span className={`flex-1 truncate text-2xl ${o?.winner === 'a' ? 'text-amber-300 font-bold' : 'text-white'}`}>{a || '待定 TBD'}</span>
+          <span className={`flex-1 truncate text-2xl ${o?.winner === 'a' ? 'text-amber-300 font-bold' : 'text-white'}`}>{a || t('big.tbd')}</span>
           <span className="font-black text-3xl tabular-nums px-2">{o ? `${o.setsA}:${o.setsB}` : 'VS'}</span>
-          <span className={`flex-1 truncate text-right text-2xl ${o?.winner === 'b' ? 'text-amber-300 font-bold' : 'text-white'}`}>{b || '待定 TBD'}</span>
+          <span className={`flex-1 truncate text-right text-2xl ${o?.winner === 'b' ? 'text-amber-300 font-bold' : 'text-white'}`}>{b || t('big.tbd')}</span>
         </div>
       </div>
     );
   };
   return (
     <div className="space-y-4 max-w-4xl">
-      {bracket.kind === 'semis' && <><Row label="半决赛 A · Semifinal A" a={bracket.sf1.a} b={bracket.sf1.b} res={bracket.sf1.res} /><Row label="半决赛 B · Semifinal B" a={bracket.sf2.a} b={bracket.sf2.b} res={bracket.sf2.res} /><Row label="🏆 决赛 · Final" a={bracket.final.a} b={bracket.final.b} res={bracket.final.res} gold /><Row label="🥉 季军赛 · 3rd Place" a={bracket.third.a} b={bracket.third.b} res={bracket.third.res} /></>}
-      {bracket.kind === 'final' && <Row label="🏆 决赛 · Final" a={bracket.final.a} b={bracket.final.b} res={bracket.final.res} gold />}
-      {bracket.champion && <div className="text-center pt-6"><Crown size={48} className="mx-auto text-amber-400 mb-2" /><div className="text-amber-300 text-lg">冠军 · Champion</div><div className="text-5xl font-black text-amber-300">{bracket.champion}</div></div>}
+      {bracket.kind === 'semis' && <><Row label={t('knockout.semiA')} a={bracket.sf1.a} b={bracket.sf1.b} res={bracket.sf1.res} /><Row label={t('knockout.semiB')} a={bracket.sf2.a} b={bracket.sf2.b} res={bracket.sf2.res} /><Row label={t('knockout.final')} a={bracket.final.a} b={bracket.final.b} res={bracket.final.res} gold /><Row label={t('knockout.thirdPlace')} a={bracket.third.a} b={bracket.third.b} res={bracket.third.res} /></>}
+      {bracket.kind === 'final' && <Row label={t('knockout.final')} a={bracket.final.a} b={bracket.final.b} res={bracket.final.res} gold />}
+      {bracket.champion && <div className="text-center pt-6"><Crown size={48} className="mx-auto text-amber-400 mb-2" /><div className="text-amber-300 text-lg">{t('big.champion')}</div><div className="text-5xl font-black text-amber-300">{bracket.champion}</div></div>}
     </div>
   );
 }
 
 /* ============ 导出 Excel ============ */
-function exportToExcel(model) {
+function exportToExcel(model, t) {
   const wb = XLSX.utils.book_new();
   if (model.mode === 'americano') {
     const { leaderboard, amRows } = model;
-    const lb = [['排名 Rank', '选手 Player', '场次 GP', '胜 W', '总分 Pts']];
+    const lb = [[t('export.rank'), t('export.player'), t('export.gp'), t('export.win'), t('export.pts')]];
     leaderboard.forEach((s, i) => lb.push([i + 1, s.name, s.played, s.win, s.points]));
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(lb), '个人排名 Leaderboard');
-    const rr = [['轮次 Round', '场地 Court', '组合A Pair A', '组合B Pair B', '比分 Score']];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(lb), t('export.sheetLeaderboard').slice(0, 31));
+    const rr = [[t('export.round'), t('export.court'), t('export.pairA'), t('export.pairB'), t('export.score')]];
     amRows.forEach((r) => rr.push([r.round, r.court, r.t1, r.t2, r.score]));
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rr), '各轮对阵 Rounds');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rr), t('export.sheetRounds').slice(0, 31));
     XLSX.writeFile(wb, `${(model.title || 'padel').replace(/[\\/:*?"<>|]/g, '')}.xlsx`);
     return;
   }
   const { title, groups, matches, bracket } = model;
   groups.forEach((grp) => {
-    const aoa = [['排名 Rank', '队伍 Team', '胜 W', '负 L', '局差 Diff', '积分 Pts']];
+    const aoa = [[t('export.rank'), t('export.team'), t('export.win'), t('export.loss'), t('export.diff'), t('export.pts')]];
     grp.rows.forEach((s, i) => aoa.push([i + 1, s.team, s.win, s.loss, s.gf - s.ga, s.pts]));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), grp.name.slice(0, 31));
   });
-  const mAoa = [['组 Group', '轮次 Round', '队伍A Team A', '队伍B Team B', '盘分 Score']];
+  const mAoa = [[t('export.group'), t('export.round'), t('export.teamA'), t('export.teamB'), t('export.setScore')]];
   matches.forEach((m) => mAoa.push([m.group, m.round, m.a, m.b, m.score]));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(mAoa), '循环赛比分 Matches');
-  const kAoa = [['阶段 Stage', '对阵A Side A', '盘分 Score', '对阵B Side B', '胜者 Winner']];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(mAoa), t('export.sheetMatches').slice(0, 31));
+  const kAoa = [[t('export.stage'), t('export.sideA'), t('export.score'), t('export.sideB'), t('export.winner')]];
   const win = (r, a, b) => koWinner(r, a, b) || '';
   if (bracket.kind === 'semis') {
-    kAoa.push(['半决赛A SF-A', bracket.sf1.a, setsStr(bracket.sf1.res), bracket.sf1.b, win(bracket.sf1.res, bracket.sf1.a, bracket.sf1.b)], ['半决赛B SF-B', bracket.sf2.a, setsStr(bracket.sf2.res), bracket.sf2.b, win(bracket.sf2.res, bracket.sf2.a, bracket.sf2.b)], ['决赛 Final', bracket.final.a || '待定', setsStr(bracket.final.res), bracket.final.b || '待定', bracket.champion || ''], ['季军赛 3rd', bracket.third.a || '待定', setsStr(bracket.third.res), bracket.third.b || '待定', bracket.thirdPlace || '']);
-  } else if (bracket.kind === 'final') kAoa.push(['决赛 Final', bracket.final.a, setsStr(bracket.final.res), bracket.final.b, bracket.champion || '']);
-  kAoa.push([], ['冠军 Champion', bracket.champion || '未决出'], ['亚军 Runner-up', bracket.runnerUp || ''], ['季军 3rd', bracket.thirdPlace || '']);
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(kAoa), '淘汰赛 Knockout');
+    kAoa.push(
+      [t('export.semiA'), bracket.sf1.a, setsStr(bracket.sf1.res), bracket.sf1.b, win(bracket.sf1.res, bracket.sf1.a, bracket.sf1.b)],
+      [t('export.semiB'), bracket.sf2.a, setsStr(bracket.sf2.res), bracket.sf2.b, win(bracket.sf2.res, bracket.sf2.a, bracket.sf2.b)],
+      [t('export.final'), bracket.final.a || t('export.tbd'), setsStr(bracket.final.res), bracket.final.b || t('export.tbd'), bracket.champion || ''],
+      [t('export.third'), bracket.third.a || t('export.tbd'), setsStr(bracket.third.res), bracket.third.b || t('export.tbd'), bracket.thirdPlace || ''],
+    );
+  } else if (bracket.kind === 'final') kAoa.push([t('export.final'), bracket.final.a, setsStr(bracket.final.res), bracket.final.b, bracket.champion || '']);
+  kAoa.push([], [t('export.champion'), bracket.champion || t('export.undecided')], [t('export.runnerUp'), bracket.runnerUp || ''], [t('export.thirdShort'), bracket.thirdPlace || '']);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(kAoa), t('export.sheetKnockout').slice(0, 31));
   XLSX.writeFile(wb, `${(title || 'padel').replace(/[\\/:*?"<>|]/g, '')}.xlsx`);
 }
