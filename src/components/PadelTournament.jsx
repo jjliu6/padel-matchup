@@ -199,6 +199,9 @@ export default function PadelTournament() {
   const [amResults, setAmResults] = useState(() => pget('amResults', {}));
   const [amRound, setAmRound] = useState(() => pget('amRound', 0));
   const [showBig, setShowBig] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
 
   // ----- Cloud share/sync -----
   const [cloudTokens, setCloudTokens] = useState(null); // { view_token, edit_token } | null
