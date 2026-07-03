@@ -121,6 +121,7 @@ function computeStandings(teams, schedule, results, g) {
     if (m.bye) { if (stats[m.bye]) stats[m.bye].byes += 1; return; }
     const o = outcome(results[key(g, ri, mi)]); if (!o) return;
     const A = stats[m.a], B = stats[m.b];
+    if (!A || !B) return; // team removed after schedule was generated — skip stale match
     A.played++; B.played++;
     A.sf += o.setsA; A.sa += o.setsB; A.gf += o.gamesA; A.ga += o.gamesB;
     B.sf += o.setsB; B.sa += o.setsA; B.gf += o.gamesB; B.ga += o.gamesA;
@@ -128,6 +129,7 @@ function computeStandings(teams, schedule, results, g) {
     else if (o.winner === 'b') { B.win++; A.loss++; B.pts += 3; }
     else { A.draw++; B.draw++; A.pts++; B.pts++; }
   }));
+
   return Object.values(stats).sort((x, y) => y.pts - x.pts || (y.sf - y.sa) - (x.sf - x.sa) || (y.gf - y.ga) - (x.gf - x.ga) || x.team.localeCompare(y.team));
 }
 const koWinner = (res, a, b) => { const o = outcome(res); return !o ? null : (o.winner === 'b' ? b : a); };
