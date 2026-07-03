@@ -527,6 +527,25 @@ export default function PadelTournament() {
         </Modal>
       )}
 
+      {confirmNew && (
+        <Modal onClose={() => setConfirmNew(false)}>
+          <div className="text-center">
+            <div className="font-semibold text-lg mb-0.5">开始一场全新赛事？</div>
+            <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Start a new tournament?</div>
+            <p className="text-sm text-slate-500 mb-5">
+              会<b className="text-rose-500">清空所有队伍、赛程和比分</b>，并断开当前的分享链接。<br />
+              <span className="text-xs text-slate-400">Clears all teams, schedule and scores, and disconnects the current share link.</span><br />
+              <span className="text-xs text-slate-500 mt-2 inline-block">如果只是想临时看别的页面，请点「首页」而不是「新建」。<br /><span className="text-slate-400">To just navigate around while keeping data, use “首页 Home” instead.</span></span>
+            </p>
+            <div className="flex gap-2">
+              <button onClick={() => setConfirmNew(false)} className="flex-1 py-2.5 rounded-xl border border-slate-300 font-medium">取消 Cancel</button>
+              <button onClick={startNewSession} className="flex-1 py-2.5 rounded-xl bg-rose-500 text-white font-medium">确定 Confirm</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+
       {showBig && <BigScreen title={title} mode={mode} groups={bigGroups} bracket={bracket} results={results} amSchedule={amSchedule} amResults={amResults} amLeaderboard={amLeaderboard} onClose={() => setShowBig(false)} />}
 
       {showShare && cloudTokens && (
