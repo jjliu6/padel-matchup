@@ -368,11 +368,22 @@ export default function PadelTournament() {
 
   const hasProgress = isAm ? Object.keys(amResults).length > 0 : (Object.keys(results).length > 0 || Object.keys(ko).length > 0);
 
-  // When the roster changes AFTER a schedule was generated, wipe stale schedules/results
-  // so the app doesn't render matches referencing removed teams. User has to click Start again.
+  // When the roster changes AFTER a schedule was generated, warn the user, then wipe stale data.
+  const hasGenerated = () => !!(
+    Object.keys(results).length || Object.keys(ko).length || Object.keys(amResults).length
+    || (schedules.single?.length || schedules.A?.length || schedules.B?.length) || amSchedule.length
+  );
+  const confirmRosterChange = () => {
+    if (!hasGenerated()) return true;
+    if (typeof window === 'undefined') return true;
+    return window.confirm(
+      '⚠️ 修改队伍名单会清空当前赛程、比分和淘汰赛数据，需要重新点"开始 Start"生成新赛程。\n\n'
+      + 'Changing the roster will clear the current schedule, scores and knockout data. You will need to click "Start" again to regenerate.\n\n'
+      + '确定继续？ Continue?'
+    );
+  };
   const clearGeneratedIfAny = () => {
-    if (Object.keys(results).length || Object.keys(ko).length || Object.keys(amResults).length
-        || (schedules.single?.length || schedules.A?.length || schedules.B?.length) || amSchedule.length) {
+    if (hasGenerated()) {
       setSchedules({}); setResults({}); setKo({});
       setAmSchedule([]); setAmResults({}); setAmRound(0);
       setActiveGroup('A'); setActiveRound(0);
@@ -381,8 +392,8 @@ export default function PadelTournament() {
   };
   const setTeamName = (i, name) => { if (!canEdit) return; setTeams((p) => p.map((t, idx) => (idx === i ? name : t))); };
   const setGroup = (i, g) => { if (!canEdit) return; setGroupOf((p) => p.map((x, idx) => (idx === i ? g : x))); };
-  const addTeam = () => { if (!canEdit) return; clearGeneratedIfAny(); setTeams((p) => [...p, `${isAm ? '选手' : '队伍'} ${p.length + 1}`]); setGroupOf((p) => { const a = p.filter((g) => g === 'A').length, b = p.filter((g) => g === 'B').length; return [...p, a <= b ? 'A' : 'B']; }); };
-  const removeTeam = (i) => { if (!canEdit) return; if (teams.length <= 2) return; clearGeneratedIfAny(); setTeams((p) => p.filter((_, idx) => idx !== i)); setGroupOf((p) => p.filter((_, idx) => idx !== i)); };
+  const addTeam = () => { if (!canEdit) return; if (!confirmRosterChange()) return; clearGeneratedIfAny(); setTeams((p) => [...p, `${isAm ? '选手' : '队伍'} ${p.length + 1}`]); setGroupOf((p) => { const a = p.filter((g) => g === 'A').length, b = p.filter((g) => g === 'B').length; return [...p, a <= b ? 'A' : 'B']; }); };
+  const removeTeam = (i) => { if (!canEdit) return; if (teams.length <= 2) return; if (!confirmRosterChange()) return; clearGeneratedIfAny(); setTeams((p) => p.filter((_, idx) => idx !== i)); setGroupOf((p) => p.filter((_, idx) => idx !== i)); };
   const enableDouble = () => { if (!canEdit) return; setMode('double'); setGroupOf((p) => { if (p.length === teams.length) return p; const half = Math.ceil(teams.length / 2); return teams.map((_, i) => (i < half ? 'A' : 'B')); }); };
 
 
