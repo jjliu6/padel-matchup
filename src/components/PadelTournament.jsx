@@ -289,22 +289,19 @@ export default function PadelTournament() {
   }, [cloudTokens, stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
       schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound]);
 
-  // Poll every 6s in read-only view mode so watchers see live updates
+  // Realtime subscription in read-only view mode — instant push, no polling
   useEffect(() => {
     if (!readOnly || !cloudTokens?.view_token) return;
-    const iv = setInterval(async () => {
-      try {
-        const row = await loadTournament(cloudTokens.view_token);
-        if (!row) return;
-        const serialized = JSON.stringify(row.state);
-        if (serialized !== lastSavedRef.current) {
-          applyRemoteState(row.state);
-          lastSavedRef.current = serialized;
-        }
-      } catch { /* ignore transient errors */ }
-    }, 6000);
-    return () => clearInterval(iv);
+    const unsub = subscribeTournament(cloudTokens.view_token, (remoteState) => {
+      const serialized = JSON.stringify(remoteState);
+      if (serialized !== lastSavedRef.current) {
+        applyRemoteState(remoteState);
+        lastSavedRef.current = serialized;
+      }
+    });
+    return unsub;
   }, [readOnly, cloudTokens]);
+
 
   const handlePublish = async () => {
     setPublishing(true);
