@@ -474,7 +474,8 @@ export default function PadelTournament() {
                   : <button onClick={handlePublish} disabled={publishing} title="发布并生成分享链接 / Publish & share" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50">{publishing ? <Loader2 size={15} className="animate-spin" /> : <Share2 size={15} />} 分享<span className="hidden sm:inline text-[10px] font-normal opacity-70 ml-0.5">Share</span></button>
               )}
               {stage !== 'setup' && <button onClick={() => exportToExcel(exportModel)} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><FileSpreadsheet size={15} /> Excel</button>}
-              {stage !== 'setup' && <button onClick={goHome} title="返回首页 / Home" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Home size={15} /> 首页</button>}
+              {stage !== 'setup' && <button onClick={goHome} title="返回设置页（保留数据）/ Back to setup (keeps data)" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Home size={15} /> 首页</button>}
+              {!readOnly && <button onClick={() => setConfirmNew(true)} title="开始一场全新赛事（清空所有数据）/ Start new tournament (clears all)" className="flex items-center gap-1 text-sm bg-rose-500/90 hover:bg-rose-500 text-white px-2.5 py-1.5 rounded-lg transition-colors"><Plus size={15} /> 新建<span className="hidden sm:inline text-[10px] font-normal opacity-80 ml-0.5">New</span></button>}
             </div>
           </div>
         </header>
