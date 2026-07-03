@@ -20,12 +20,35 @@ export function updateUrlTokens({ view, edit }) {
   window.history.replaceState({}, '', u.toString());
 }
 
+// Public share base — never use preview/lovable.app origins because those
+// are gated behind a Lovable login and confuse viewers. Fall back to the
+// current origin only when running on a non-lovable host.
+const PUBLIC_SHARE_BASE = 'https://padel-matchup.philosophie.ai';
+
+function shareBase() {
+  if (typeof window === 'undefined') return PUBLIC_SHARE_BASE;
+  const host = window.location.hostname;
+  const isLovable = host.endsWith('.lovable.app') || host.endsWith('.lovable.dev') || host === 'localhost' || host.startsWith('127.');
+  return isLovable ? PUBLIC_SHARE_BASE : window.location.origin;
+}
+
 export function buildShareUrls({ view, edit }) {
-  if (typeof window === 'undefined') return { viewUrl: '', editUrl: '' };
-  const base = window.location.origin + window.location.pathname;
+  const base = shareBase() + '/';
   const viewUrl = view ? `${base}?${PARAM_VIEW}=${view}` : '';
   const editUrl = view && edit ? `${base}?${PARAM_VIEW}=${view}&${PARAM_EDIT}=${edit}` : '';
   return { viewUrl, editUrl };
+}
+
+export function subscribeTournament(viewToken, onChange) {
+  const channel = supabase
+    .channel(`tournament:${viewToken}`)
+    .on('postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'tournaments', filter: `view_token=eq.${viewToken}` },
+      (payload) => {
+        if (payload?.new?.state) onChange(payload.new.state);
+      })
+    .subscribe();
+  return () => { supabase.removeChannel(channel); };
 }
 
 export async function createTournament(state) {

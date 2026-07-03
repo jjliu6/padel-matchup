@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { createTournament, loadTournament, saveTournament, getUrlTokens, updateUrlTokens, buildShareUrls } from '@/lib/tournament-cloud';
+import { createTournament, loadTournament, saveTournament, getUrlTokens, updateUrlTokens, buildShareUrls, subscribeTournament } from '@/lib/tournament-cloud';
+import QRCode from 'qrcode';
 
 const LS_KEY = 'padel-tournament-state-v1';
 const loadPersisted = () => {
@@ -288,22 +289,19 @@ export default function PadelTournament() {
   }, [cloudTokens, stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
       schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound]);
 
-  // Poll every 6s in read-only view mode so watchers see live updates
+  // Realtime subscription in read-only view mode — instant push, no polling
   useEffect(() => {
     if (!readOnly || !cloudTokens?.view_token) return;
-    const iv = setInterval(async () => {
-      try {
-        const row = await loadTournament(cloudTokens.view_token);
-        if (!row) return;
-        const serialized = JSON.stringify(row.state);
-        if (serialized !== lastSavedRef.current) {
-          applyRemoteState(row.state);
-          lastSavedRef.current = serialized;
-        }
-      } catch { /* ignore transient errors */ }
-    }, 6000);
-    return () => clearInterval(iv);
+    const unsub = subscribeTournament(cloudTokens.view_token, (remoteState) => {
+      const serialized = JSON.stringify(remoteState);
+      if (serialized !== lastSavedRef.current) {
+        applyRemoteState(remoteState);
+        lastSavedRef.current = serialized;
+      }
+    });
+    return unsub;
   }, [readOnly, cloudTokens]);
+
 
   const handlePublish = async () => {
     setPublishing(true);
@@ -454,7 +452,7 @@ export default function PadelTournament() {
           <div className="bg-amber-100 border-b border-amber-300 text-amber-900 text-xs sm:text-sm">
             <div className="max-w-5xl mx-auto px-4 py-2 flex items-center gap-2">
               <Eye size={14} className="shrink-0" />
-              <span className="flex-1">只读观看模式 · 每 6 秒自动刷新 <span className="opacity-70">Read-only view · auto-refresh</span></span>
+              <span className="flex-1">只读观看模式 · 即时同步 <span className="opacity-70">Read-only view · live</span></span>
             </div>
           </div>
         )}
@@ -515,6 +513,12 @@ function SyncBadge({ status }) {
 function ShareModal({ tokens, onClose }) {
   const { viewUrl, editUrl } = buildShareUrls({ view: tokens.view_token, edit: tokens.edit_token });
   const [copied, setCopied] = useState('');
+  const [qrDataUrl, setQrDataUrl] = useState('');
+  useEffect(() => {
+    if (!viewUrl) return;
+    QRCode.toDataURL(viewUrl, { width: 512, margin: 1, color: { dark: '#0f172a', light: '#ffffff' } })
+      .then(setQrDataUrl).catch(() => setQrDataUrl(''));
+  }, [viewUrl]);
   const copy = async (label, text) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -523,10 +527,20 @@ function ShareModal({ tokens, onClose }) {
     } catch { /* ignore */ }
   };
   return (
-    <Modal onClose={onClose}>
-      <div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="font-semibold text-lg mb-0.5 flex items-center gap-2"><Share2 size={18} className="text-blue-600" /> 分享比赛</div>
-        <div className="text-xs text-slate-400 uppercase tracking-wider mb-4">Share this tournament</div>
+        <div className="text-xs text-slate-400 uppercase tracking-wider mb-4">Share this tournament · 实时同步 Live</div>
+
+        {qrDataUrl && (
+          <div className="mb-4 flex flex-col items-center bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <img src={qrDataUrl} alt="QR code" className="w-48 h-48" />
+            <div className="text-xs text-slate-500 mt-2 text-center">现场扫码看大屏 · Scan to watch live</div>
+            {qrDataUrl && (
+              <a href={qrDataUrl} download="padel-tournament-qr.png" className="text-[11px] text-blue-600 hover:text-blue-800 mt-1">下载二维码 Download QR</a>
+            )}
+          </div>
+        )}
 
         <div className="mb-4">
           <div className="text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5"><Eye size={12} /> 只读观看 · View-only link</div>
@@ -550,7 +564,7 @@ function ShareModal({ tokens, onClose }) {
 
         <button onClick={onClose} className="w-full py-2.5 rounded-xl border border-slate-300 font-medium text-sm">关闭 Close</button>
       </div>
-    </Modal>
+    </div>
   );
 }
 
