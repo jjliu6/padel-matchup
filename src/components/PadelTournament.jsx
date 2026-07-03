@@ -180,6 +180,7 @@ function Bi({ zh, en, className = '', enCls = 'text-slate-400' }) {
 }
 
 export default function PadelTournament() {
+  const [urlTokens] = useState(() => getUrlTokens());
   const [stage, setStage] = useState(() => pget('stage', 'setup'));
   const [resumeStage, setResumeStage] = useState(null);
   const [confirmRegen, setConfirmRegen] = useState(false);
@@ -204,14 +205,16 @@ export default function PadelTournament() {
 
 
   // ----- Cloud share/sync -----
-  const [cloudTokens, setCloudTokens] = useState(null); // { view_token, edit_token } | null
-  const [readOnly, setReadOnly] = useState(false);
+  const [cloudTokens, setCloudTokens] = useState(() => (urlTokens.view ? { view_token: urlTokens.view, edit_token: urlTokens.edit || null } : null)); // { view_token, edit_token } | null
+  const [readOnly, setReadOnly] = useState(() => !!urlTokens.view && !urlTokens.edit);
+  const [remoteLoading, setRemoteLoading] = useState(() => !!urlTokens.view);
   const [showShare, setShowShare] = useState(false);
-  const [syncStatus, setSyncStatus] = useState('idle'); // idle|saving|saved|error|loading
+  const [syncStatus, setSyncStatus] = useState(() => (urlTokens.view ? 'loading' : 'idle')); // idle|saving|saved|error|loading
   const [publishing, setPublishing] = useState(false);
   const initialLoadRef = useRef(false);
   const saveTimerRef = useRef(null);
   const lastSavedRef = useRef('');
+  const canEdit = !readOnly && !remoteLoading && (!cloudTokens?.view_token || !!cloudTokens?.edit_token);
 
   // Bundle current state to serialize to cloud
   const buildState = () => ({
@@ -243,9 +246,11 @@ export default function PadelTournament() {
   useEffect(() => {
     if (initialLoadRef.current) return;
     initialLoadRef.current = true;
-    const { view, edit } = getUrlTokens();
+    const { view, edit } = urlTokens;
     if (!view) return;
     setSyncStatus('loading');
+    setRemoteLoading(true);
+    setReadOnly(!edit);
     loadTournament(view).then((row) => {
       if (!row) { setSyncStatus('error'); return; }
       applyRemoteState(row.state);
@@ -258,22 +263,25 @@ export default function PadelTournament() {
         setReadOnly(true);
       }
       setSyncStatus('saved');
-    }).catch(() => setSyncStatus('error'));
-  }, []);
+    }).catch(() => setSyncStatus('error'))
+      .finally(() => setRemoteLoading(false));
+  }, [urlTokens]);
 
   // Local persistence (skip in read-only mode so a viewer's changes don't overwrite their own restore)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (readOnly) return;
+    if (remoteLoading) return;
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(buildState()));
     } catch { /* quota / private mode */ }
-  }, [readOnly, stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
+  }, [readOnly, remoteLoading, stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
       schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound]);
 
   // Debounced cloud auto-save when we hold the edit token
   useEffect(() => {
     if (!cloudTokens?.edit_token) return;
+    if (!canEdit) return;
     const payload = buildState();
     const serialized = JSON.stringify(payload);
     if (serialized === lastSavedRef.current) return;
@@ -290,7 +298,7 @@ export default function PadelTournament() {
       }
     }, 800);
     return () => saveTimerRef.current && clearTimeout(saveTimerRef.current);
-  }, [cloudTokens, stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
+  }, [cloudTokens, canEdit, stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
       schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound]);
 
   // Realtime broadcast subscription — instant push to viewers and other editors
@@ -309,6 +317,7 @@ export default function PadelTournament() {
 
 
   const handlePublish = async () => {
+    if (!canEdit) return;
     setPublishing(true);
     try {
       const row = await createTournament(buildState());
@@ -357,14 +366,15 @@ export default function PadelTournament() {
 
   const hasProgress = isAm ? Object.keys(amResults).length > 0 : (Object.keys(results).length > 0 || Object.keys(ko).length > 0);
 
-  const setTeamName = (i, name) => setTeams((p) => p.map((t, idx) => (idx === i ? name : t)));
-  const setGroup = (i, g) => setGroupOf((p) => p.map((x, idx) => (idx === i ? g : x)));
-  const addTeam = () => { setTeams((p) => [...p, `${isAm ? '选手' : '队伍'} ${p.length + 1}`]); setGroupOf((p) => { const a = p.filter((g) => g === 'A').length, b = p.filter((g) => g === 'B').length; return [...p, a <= b ? 'A' : 'B']; }); };
-  const removeTeam = (i) => { if (teams.length <= 2) return; setTeams((p) => p.filter((_, idx) => idx !== i)); setGroupOf((p) => p.filter((_, idx) => idx !== i)); };
-  const enableDouble = () => { setMode('double'); setGroupOf((p) => { if (p.length === teams.length) return p; const half = Math.ceil(teams.length / 2); return teams.map((_, i) => (i < half ? 'A' : 'B')); }); };
+  const setTeamName = (i, name) => { if (!canEdit) return; setTeams((p) => p.map((t, idx) => (idx === i ? name : t))); };
+  const setGroup = (i, g) => { if (!canEdit) return; setGroupOf((p) => p.map((x, idx) => (idx === i ? g : x))); };
+  const addTeam = () => { if (!canEdit) return; setTeams((p) => [...p, `${isAm ? '选手' : '队伍'} ${p.length + 1}`]); setGroupOf((p) => { const a = p.filter((g) => g === 'A').length, b = p.filter((g) => g === 'B').length; return [...p, a <= b ? 'A' : 'B']; }); };
+  const removeTeam = (i) => { if (!canEdit) return; if (teams.length <= 2) return; setTeams((p) => p.filter((_, idx) => idx !== i)); setGroupOf((p) => p.filter((_, idx) => idx !== i)); };
+  const enableDouble = () => { if (!canEdit) return; setMode('double'); setGroupOf((p) => { if (p.length === teams.length) return p; const half = Math.ceil(teams.length / 2); return teams.map((_, i) => (i < half ? 'A' : 'B')); }); };
 
   const relabelDefault = (names, from, to) => names.map((n) => { const m = n.trim().match(/^(队伍|选手)\s*(.+)$/); return m && m[1] === from ? `${to} ${m[2]}` : n; });
   const chooseMode = (m) => {
+    if (!canEdit) return;
     if (m === 'americano') { setTeams((p) => relabelDefault(p, '队伍', '选手')); setMode('americano'); }
     else if (m === 'double') { setTeams((p) => relabelDefault(p, '选手', '队伍')); enableDouble(); }
     else { setTeams((p) => relabelDefault(p, '选手', '队伍')); setMode('single'); }
@@ -373,6 +383,7 @@ export default function PadelTournament() {
   const canStart = mode === 'single' ? teams.length >= 2 : mode === 'double' ? (sizeA >= 2 && sizeB >= 2) : teams.length >= 4;
 
   const doGenerate = () => {
+    if (!canEdit) return;
     setConfirmRegen(false);
     const clean = teams.map((t, i) => t.trim() || `${isAm ? '选手' : '队伍'} ${i + 1}`);
     const seen = new Set();
@@ -393,12 +404,13 @@ export default function PadelTournament() {
     }
     setResumeStage(null);
   };
-  const start = () => (hasProgress ? setConfirmRegen(true) : doGenerate());
+  const start = () => { if (!canEdit) return; return hasProgress ? setConfirmRegen(true) : doGenerate(); };
   const goHome = () => { setResumeStage(stage); setStage('setup'); };
   const resume = () => { setStage(resumeStage); setResumeStage(null); };
 
   const [confirmNew, setConfirmNew] = useState(false);
   const startNewSession = () => {
+    if (!canEdit && readOnly) return;
     try { localStorage.removeItem(LS_KEY); } catch {}
     updateUrlTokens({ view: null, edit: null });
     setCloudTokens(null);
@@ -426,10 +438,10 @@ export default function PadelTournament() {
   };
 
 
-  const saveScore = (g, ri, mi, sets) => setResults((p) => ({ ...p, [key(g, ri, mi)]: { sets, done: true } }));
-  const clearScore = (g, ri, mi) => setResults((p) => { const n = { ...p }; delete n[key(g, ri, mi)]; return n; });
-  const saveAm = (ri, ci, s1, s2) => setAmResults((p) => ({ ...p, [`${ri}-${ci}`]: { s1, s2, done: true } }));
-  const clearAm = (ri, ci) => setAmResults((p) => { const n = { ...p }; delete n[`${ri}-${ci}`]; return n; });
+  const saveScore = (g, ri, mi, sets) => { if (!canEdit) return; setResults((p) => ({ ...p, [key(g, ri, mi)]: { sets, done: true } })); };
+  const clearScore = (g, ri, mi) => { if (!canEdit) return; setResults((p) => { const n = { ...p }; delete n[key(g, ri, mi)]; return n; }); };
+  const saveAm = (ri, ci, s1, s2) => { if (!canEdit) return; setAmResults((p) => ({ ...p, [`${ri}-${ci}`]: { s1, s2, done: true } })); };
+  const clearAm = (ri, ci) => { if (!canEdit) return; setAmResults((p) => { const n = { ...p }; delete n[`${ri}-${ci}`]; return n; }); };
 
   const exportModel = useMemo(() => {
     if (isAm) {
@@ -497,19 +509,19 @@ export default function PadelTournament() {
           </div>
         )}
 
-        <main className="max-w-5xl mx-auto px-4 py-6" {...(readOnly ? { inert: '' } : {})}>
+        <main className="max-w-5xl mx-auto px-4 py-6">
           {stage === 'setup' && (
             <SetupView {...{ title, setTitle, teams, setTeamName, addTeam, removeTeam, numRounds, setNumRounds, maxRounds,
               mode, chooseMode, groupOf, setGroup, sizeA, sizeB, advancePerGroup, setAdvancePerGroup, canStart, onStart: start,
-              isAm, resumeStage, onResume: resume, defaultSets, setDefaultSets }} />
+              isAm, resumeStage, onResume: resume, defaultSets, setDefaultSets, canEdit }} />
           )}
           {stage === 'group' && (
             <GroupView {...{ mode, schedules, results, activeGroup, setActiveGroup, activeRound, setActiveRound, saveScore, clearScore,
-              standingsSingle, standingsA, standingsB, advancePerGroup, progress, groupDone, defaultSets, onGoKnockout: () => setStage('knockout') }} />
+              standingsSingle, standingsA, standingsB, advancePerGroup, progress, groupDone, defaultSets, canEdit, onGoKnockout: () => setStage('knockout') }} />
           )}
-          {stage === 'knockout' && <KnockoutView bracket={bracket} ko={ko} setKo={setKo} defaultSets={defaultSets} onBack={() => setStage('group')} />}
+          {stage === 'knockout' && <KnockoutView bracket={bracket} ko={ko} setKo={setKo} defaultSets={defaultSets} canEdit={canEdit} onBack={() => setStage('group')} />}
           {stage === 'americano' && (
-            <AmericanoView {...{ amSchedule, amResults, amRound, setAmRound, saveAm, clearAm, leaderboard: amLeaderboard, progress: amProgress }} />
+            <AmericanoView {...{ amSchedule, amResults, amRound, setAmRound, saveAm, clearAm, leaderboard: amLeaderboard, progress: amProgress, canEdit }} />
           )}
         </main>
 
