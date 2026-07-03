@@ -1103,7 +1103,7 @@ function BigScreen({ title, mode, groups, bracket, results, amSchedule, amResult
               {view === 'round' && (
                 <div className="flex items-center gap-3 ml-auto">
                   <button onClick={() => setRi(Math.max(0, rIdx - 1))} disabled={rIdx === 0} className="bg-white/10 hover:bg-white/20 disabled:opacity-30 rounded-full p-3"><ChevronLeft size={26} /></button>
-                  <span className="text-2xl font-bold tabular-nums w-40 text-center">第 {rIdx + 1} / {roundsCount} 轮</span>
+                  <span className="text-xl sm:text-2xl font-bold tabular-nums w-56 text-center">第 {rIdx + 1} / {roundsCount} 轮 <span className="text-sm font-normal opacity-70">Round {rIdx + 1} / {roundsCount}</span></span>
                   <button onClick={() => setRi(Math.min(roundsCount - 1, rIdx + 1))} disabled={rIdx >= roundsCount - 1} className="bg-white/10 hover:bg-white/20 disabled:opacity-30 rounded-full p-3"><ChevronRight size={26} /></button>
                 </div>
               )}
