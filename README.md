@@ -40,7 +40,7 @@ bun install
 
 ### Environment variables
 
-Create a `.env.local` file for local development:
+Copy `.env.example` to `.env.local`, then fill in your Supabase values for local development:
 
 ```bash
 VITE_SUPABASE_URL="https://your-project.supabase.co"
@@ -90,25 +90,16 @@ public/                                Favicon, Open Graph image, and static ass
 
 This repository is close to being open-source ready. Recommended next steps:
 
-1. Add a license file, for example MIT or Apache-2.0.
-2. Move the large `PadelTournament.jsx` module into smaller feature modules: scheduling, scoring, export, share modal, setup screen, and big-screen views.
-3. Add unit tests for schedule generation, leaderboard ordering, knockout seeding, and Excel export data shaping.
-4. Replace generated or Lovable-specific naming with stable public package metadata where appropriate.
-5. Document the Supabase RPC contract in more detail for self-hosters.
-6. Add contribution guidelines and issue templates once external contributors are expected.
+1. Move the large `PadelTournament.jsx` module into smaller feature modules: scheduling, scoring, export, share modal, setup screen, and big-screen views.
+2. Add unit tests for schedule generation, leaderboard ordering, knockout seeding, and Excel export data shaping.
+3. Replace generated or Lovable-specific naming with stable public package metadata where appropriate.
+4. Document the Supabase RPC contract in more detail for self-hosters.
+5. Add a CI workflow that runs `lint`, `typecheck`, and `build` on pull requests.
 
 ## Contributing
 
-Contributions are welcome. Before opening a pull request, please run:
-
-```bash
-bun run lint
-bun run typecheck
-bun run build
-```
-
-Keep changes focused and avoid rewriting published git history because this project is connected to Lovable.
+Contributions are welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md) for local checks and guidelines. Keep changes focused and avoid rewriting published git history because this project is connected to Lovable.
 
 ## License
 
-No license has been committed yet. Add a `LICENSE` file before announcing the project as open source so contributors and users know the terms.
+This project is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
