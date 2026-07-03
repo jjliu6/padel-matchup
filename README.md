@@ -100,6 +100,18 @@ supabase/migrations/                   Database schema and RPC migrations
 public/                                Favicon, Open Graph image, and static assets
 ```
 
+## SEO & GEO
+
+The site ships the standard discovery and citability surface for both search engines and AI answer engines (GEO — Generative Engine Optimization):
+
+- `public/robots.txt` — allows general crawlers plus AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, etc.) and points to the sitemap.
+- `public/sitemap.xml` — lists the public URL(s).
+- `public/llms.txt` — a plain-language summary of the product for AI assistants, per the [llms.txt convention](https://llmstxt.org/).
+- `src/routes/index.tsx` — Open Graph/Twitter meta tags plus a `SoftwareApplication` JSON-LD block.
+- `src/routes/__root.tsx` — site-wide fallback meta (title, description, robots, favicon).
+
+When adding new routes, give each a `head()` with its own title/description/canonical, and add the URL to `sitemap.xml` if it should be publicly indexed.
+
 ## Open-source readiness notes
 
 This repository is close to being open-source ready. Recommended next steps:

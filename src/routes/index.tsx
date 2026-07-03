@@ -8,6 +8,25 @@ const DESC =
   "Run padel tournaments end-to-end: group stage, Americano rotations, knockout brackets, live standings, big-screen mode, and Excel export.";
 const OG_IMAGE = `${SITE}/og-cover.jpg`;
 
+// SoftwareApplication schema so search and AI answer engines can cite what
+// Padel Matchup is, that it's free, and where the source lives.
+const STRUCTURED_DATA = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Padel Matchup",
+  url: SITE + "/",
+  description: DESC,
+  applicationCategory: "SportsApplication",
+  operatingSystem: "Any (web-based)",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  image: OG_IMAGE,
+  publisher: {
+    "@type": "Organization",
+    name: "Philosophie AI",
+    url: "https://philosophie.ai/",
+  },
+};
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -18,6 +37,9 @@ export const Route = createFileRoute("/")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: SITE + "/" },
       { property: "og:image", content: OG_IMAGE },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "640" },
+      { property: "og:locale", content: "en_US" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESC },
@@ -25,5 +47,17 @@ export const Route = createFileRoute("/")({
     ],
     links: [{ rel: "canonical", href: SITE + "/" }],
   }),
-  component: PadelTournament,
+  component: HomePage,
 });
+
+function HomePage() {
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
+      />
+      <PadelTournament />
+    </>
+  );
+}
