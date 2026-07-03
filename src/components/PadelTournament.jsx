@@ -281,6 +281,7 @@ export default function PadelTournament() {
         await saveTournament(cloudTokens.edit_token, payload);
         lastSavedRef.current = serialized;
         setSyncStatus('saved');
+        broadcastTournament(cloudTokens.view_token, payload);
       } catch {
         setSyncStatus('error');
       }
@@ -289,9 +290,9 @@ export default function PadelTournament() {
   }, [cloudTokens, stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
       schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound]);
 
-  // Realtime subscription in read-only view mode — instant push, no polling
+  // Realtime broadcast subscription — instant push to viewers and other editors
   useEffect(() => {
-    if (!readOnly || !cloudTokens?.view_token) return;
+    if (!cloudTokens?.view_token) return;
     const unsub = subscribeTournament(cloudTokens.view_token, (remoteState) => {
       const serialized = JSON.stringify(remoteState);
       if (serialized !== lastSavedRef.current) {
@@ -300,7 +301,8 @@ export default function PadelTournament() {
       }
     });
     return unsub;
-  }, [readOnly, cloudTokens]);
+  }, [cloudTokens?.view_token]);
+
 
 
   const handlePublish = async () => {
