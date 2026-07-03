@@ -14,13 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      tournaments: {
+        Row: {
+          created_at: string
+          edit_token: string
+          id: string
+          state: Json
+          updated_at: string
+          view_token: string
+        }
+        Insert: {
+          created_at?: string
+          edit_token?: string
+          id?: string
+          state?: Json
+          updated_at?: string
+          view_token?: string
+        }
+        Update: {
+          created_at?: string
+          edit_token?: string
+          id?: string
+          state?: Json
+          updated_at?: string
+          view_token?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_tournament: {
+        Args: { initial_state: Json }
+        Returns: {
+          edit_token: string
+          id: string
+          view_token: string
+        }[]
+      }
+      load_tournament: {
+        Args: { _view_token: string }
+        Returns: {
+          state: Json
+          updated_at: string
+        }[]
+      }
+      save_tournament: {
+        Args: { _edit_token: string; _state: Json }
+        Returns: {
+          updated_at: string
+          view_token: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
