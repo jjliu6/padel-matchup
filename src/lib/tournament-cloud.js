@@ -40,16 +40,35 @@ export function buildShareUrls({ view, edit }) {
 }
 
 export function subscribeTournament(viewToken, onChange) {
-  const channel = supabase
-    .channel(`tournament:${viewToken}`)
-    .on('postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'tournaments', filter: `view_token=eq.${viewToken}` },
-      (payload) => {
-        if (payload?.new?.state) onChange(payload.new.state);
-      })
+  const channel = supabase.channel(`tournament:${viewToken}`, {
+    config: { broadcast: { self: false } },
+  });
+  channel
+    .on('broadcast', { event: 'update' }, (msg) => {
+      const state = msg?.payload?.state;
+      if (state) onChange(state);
+    })
     .subscribe();
   return () => { supabase.removeChannel(channel); };
 }
+
+// Fire-and-forget broadcast after a successful save so viewers refresh instantly.
+export async function broadcastTournament(viewToken, state) {
+  try {
+    const channel = supabase.channel(`tournament:${viewToken}`);
+    await new Promise((resolve) => {
+      channel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') resolve();
+      });
+      setTimeout(resolve, 1500);
+    });
+    await channel.send({ type: 'broadcast', event: 'update', payload: { state } });
+    setTimeout(() => supabase.removeChannel(channel), 500);
+  } catch (e) {
+    // best effort
+  }
+}
+
 
 export async function createTournament(state) {
   const { data, error } = await supabase.rpc('create_tournament', { initial_state: state });
