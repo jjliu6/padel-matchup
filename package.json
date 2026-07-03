@@ -97,5 +97,6 @@
     "react",
     "supabase"
   ],
-  "license": "UNLICENSED"
+  "license": "MIT",
+  "homepage": "https://padel-matchup.philosophie.ai/"
 }
