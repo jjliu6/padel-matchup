@@ -439,11 +439,25 @@ export default function PadelTournament() {
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               {stage !== 'setup' && <button onClick={() => setShowBig(true)} className="flex items-center gap-1 text-sm bg-amber-400 text-blue-900 hover:bg-amber-300 px-3 py-1.5 rounded-lg font-semibold shadow-sm shadow-amber-400/30 transition-colors"><Monitor size={15} /> 大屏<span className="hidden sm:inline text-[10px] font-normal opacity-70 ml-0.5">Screen</span></button>}
+              {stage !== 'setup' && !readOnly && (
+                cloudTokens?.edit_token
+                  ? <button onClick={() => setShowShare(true)} title="分享 / Share" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Share2 size={15} /> <SyncBadge status={syncStatus} /></button>
+                  : <button onClick={handlePublish} disabled={publishing} title="发布并生成分享链接 / Publish & share" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50">{publishing ? <Loader2 size={15} className="animate-spin" /> : <Share2 size={15} />} 分享<span className="hidden sm:inline text-[10px] font-normal opacity-70 ml-0.5">Share</span></button>
+              )}
               {stage !== 'setup' && <button onClick={() => exportToExcel(exportModel)} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><FileSpreadsheet size={15} /> Excel</button>}
               {stage !== 'setup' && <button onClick={goHome} title="返回首页 / Home" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Home size={15} /> 首页</button>}
             </div>
           </div>
         </header>
+
+        {readOnly && (
+          <div className="bg-amber-100 border-b border-amber-300 text-amber-900 text-xs sm:text-sm">
+            <div className="max-w-5xl mx-auto px-4 py-2 flex items-center gap-2">
+              <Eye size={14} className="shrink-0" />
+              <span className="flex-1">只读观看模式 · 每 6 秒自动刷新 <span className="opacity-70">Read-only view · auto-refresh</span></span>
+            </div>
+          </div>
+        )}
 
         <main className="max-w-5xl mx-auto px-4 py-6">
           {stage === 'setup' && (
