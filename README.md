@@ -45,8 +45,6 @@ Padel Matchup es una herramienta de código abierto para organizar torneos de p�
 
 Versión gratuita en línea (interfaz 100% en español): [padel-matchup.philosophie.ai/es](https://padel-matchup.philosophie.ai/es/)
 
-El proyecto está licenciado bajo MIT (ver [LICENSE](./LICENSE)); el nombre "Padel Matchup" y la marca de Philosophie AI quedan fuera de esa licencia. Para dudas o despliegues personalizados: [junjie@philosophie.ai](mailto:junjie@philosophie.ai).
-
 ## Getting started
 
 ### Prerequisites
