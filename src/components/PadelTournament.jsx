@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { createTournament, loadTournament, saveTournament, getUrlTokens, updateUrlTokens, buildShareUrls } from '@/lib/tournament-cloud';
 
 const LS_KEY = 'padel-tournament-state-v1';
 const loadPersisted = () => {
@@ -12,7 +13,7 @@ import * as XLSX from 'xlsx';
 import {
   Trophy, Users, Home, Crown, Plus, Minus, Coffee, Swords, Flag, Check, Medal,
   ArrowRight, ListOrdered, FileSpreadsheet, LayoutGrid, Monitor, X,
-  ChevronLeft, ChevronRight, Shuffle,
+  ChevronLeft, ChevronRight, Shuffle, Share2, Copy, Eye, Loader2, CloudOff, Cloud,
 } from 'lucide-react';
 
 const BYE = '__BYE__';
@@ -198,16 +199,129 @@ export default function PadelTournament() {
   const [amRound, setAmRound] = useState(() => pget('amRound', 0));
   const [showBig, setShowBig] = useState(false);
 
+  // ----- Cloud share/sync -----
+  const [cloudTokens, setCloudTokens] = useState(null); // { view_token, edit_token } | null
+  const [readOnly, setReadOnly] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [syncStatus, setSyncStatus] = useState('idle'); // idle|saving|saved|error|loading
+  const [publishing, setPublishing] = useState(false);
+  const initialLoadRef = useRef(false);
+  const saveTimerRef = useRef(null);
+  const lastSavedRef = useRef('');
+
+  // Bundle current state to serialize to cloud
+  const buildState = () => ({
+    stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
+    schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound,
+  });
+
+  const applyRemoteState = (s) => {
+    if (!s || typeof s !== 'object') return;
+    if ('stage' in s) setStage(s.stage);
+    if ('title' in s) setTitle(s.title);
+    if ('teams' in s) setTeams(s.teams);
+    if ('groupOf' in s) setGroupOf(s.groupOf);
+    if ('mode' in s) setMode(s.mode);
+    if ('advancePerGroup' in s) setAdvancePerGroup(s.advancePerGroup);
+    if ('numRounds' in s) setNumRounds(s.numRounds);
+    if ('defaultSets' in s) setDefaultSets(s.defaultSets);
+    if ('schedules' in s) setSchedules(s.schedules);
+    if ('results' in s) setResults(s.results);
+    if ('ko' in s) setKo(s.ko);
+    if ('activeGroup' in s) setActiveGroup(s.activeGroup);
+    if ('activeRound' in s) setActiveRound(s.activeRound);
+    if ('amSchedule' in s) setAmSchedule(s.amSchedule);
+    if ('amResults' in s) setAmResults(s.amResults);
+    if ('amRound' in s) setAmRound(s.amRound);
+  };
+
+  // Initial load: check URL for share tokens
+  useEffect(() => {
+    if (initialLoadRef.current) return;
+    initialLoadRef.current = true;
+    const { view, edit } = getUrlTokens();
+    if (!view) return;
+    setSyncStatus('loading');
+    loadTournament(view).then((row) => {
+      if (!row) { setSyncStatus('error'); return; }
+      applyRemoteState(row.state);
+      lastSavedRef.current = JSON.stringify(row.state);
+      if (edit) {
+        setCloudTokens({ view_token: view, edit_token: edit });
+        setReadOnly(false);
+      } else {
+        setCloudTokens({ view_token: view, edit_token: null });
+        setReadOnly(true);
+      }
+      setSyncStatus('saved');
+    }).catch(() => setSyncStatus('error'));
+  }, []);
+
+  // Local persistence (skip in read-only mode so a viewer's changes don't overwrite their own restore)
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (readOnly) return;
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify({
-        stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
-        schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound,
-      }));
+      localStorage.setItem(LS_KEY, JSON.stringify(buildState()));
     } catch { /* quota / private mode */ }
-  }, [stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
+  }, [readOnly, stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
       schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound]);
+
+  // Debounced cloud auto-save when we hold the edit token
+  useEffect(() => {
+    if (!cloudTokens?.edit_token) return;
+    const payload = buildState();
+    const serialized = JSON.stringify(payload);
+    if (serialized === lastSavedRef.current) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    setSyncStatus('saving');
+    saveTimerRef.current = setTimeout(async () => {
+      try {
+        await saveTournament(cloudTokens.edit_token, payload);
+        lastSavedRef.current = serialized;
+        setSyncStatus('saved');
+      } catch {
+        setSyncStatus('error');
+      }
+    }, 800);
+    return () => saveTimerRef.current && clearTimeout(saveTimerRef.current);
+  }, [cloudTokens, stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
+      schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound]);
+
+  // Poll every 6s in read-only view mode so watchers see live updates
+  useEffect(() => {
+    if (!readOnly || !cloudTokens?.view_token) return;
+    const iv = setInterval(async () => {
+      try {
+        const row = await loadTournament(cloudTokens.view_token);
+        if (!row) return;
+        const serialized = JSON.stringify(row.state);
+        if (serialized !== lastSavedRef.current) {
+          applyRemoteState(row.state);
+          lastSavedRef.current = serialized;
+        }
+      } catch { /* ignore transient errors */ }
+    }, 6000);
+    return () => clearInterval(iv);
+  }, [readOnly, cloudTokens]);
+
+  const handlePublish = async () => {
+    setPublishing(true);
+    try {
+      const row = await createTournament(buildState());
+      const tokens = { view_token: row.view_token, edit_token: row.edit_token };
+      setCloudTokens(tokens);
+      lastSavedRef.current = JSON.stringify(buildState());
+      updateUrlTokens({ view: tokens.view_token, edit: tokens.edit_token });
+      setSyncStatus('saved');
+      setShowShare(true);
+    } catch (e) {
+      setSyncStatus('error');
+      alert('发布失败 / Publish failed: ' + (e?.message || e));
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   const isAm = mode === 'americano';
   const sizeA = groupOf.filter((g) => g === 'A').length;
@@ -325,11 +439,25 @@ export default function PadelTournament() {
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               {stage !== 'setup' && <button onClick={() => setShowBig(true)} className="flex items-center gap-1 text-sm bg-amber-400 text-blue-900 hover:bg-amber-300 px-3 py-1.5 rounded-lg font-semibold shadow-sm shadow-amber-400/30 transition-colors"><Monitor size={15} /> 大屏<span className="hidden sm:inline text-[10px] font-normal opacity-70 ml-0.5">Screen</span></button>}
+              {stage !== 'setup' && !readOnly && (
+                cloudTokens?.edit_token
+                  ? <button onClick={() => setShowShare(true)} title="分享 / Share" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Share2 size={15} /> <SyncBadge status={syncStatus} /></button>
+                  : <button onClick={handlePublish} disabled={publishing} title="发布并生成分享链接 / Publish & share" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50">{publishing ? <Loader2 size={15} className="animate-spin" /> : <Share2 size={15} />} 分享<span className="hidden sm:inline text-[10px] font-normal opacity-70 ml-0.5">Share</span></button>
+              )}
               {stage !== 'setup' && <button onClick={() => exportToExcel(exportModel)} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><FileSpreadsheet size={15} /> Excel</button>}
               {stage !== 'setup' && <button onClick={goHome} title="返回首页 / Home" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Home size={15} /> 首页</button>}
             </div>
           </div>
         </header>
+
+        {readOnly && (
+          <div className="bg-amber-100 border-b border-amber-300 text-amber-900 text-xs sm:text-sm">
+            <div className="max-w-5xl mx-auto px-4 py-2 flex items-center gap-2">
+              <Eye size={14} className="shrink-0" />
+              <span className="flex-1">只读观看模式 · 每 6 秒自动刷新 <span className="opacity-70">Read-only view · auto-refresh</span></span>
+            </div>
+          </div>
+        )}
 
         <main className="max-w-5xl mx-auto px-4 py-6">
           {stage === 'setup' && (
@@ -369,7 +497,60 @@ export default function PadelTournament() {
       )}
 
       {showBig && <BigScreen title={title} mode={mode} groups={bigGroups} bracket={bracket} results={results} amSchedule={amSchedule} amResults={amResults} amLeaderboard={amLeaderboard} onClose={() => setShowBig(false)} />}
+
+      {showShare && cloudTokens && (
+        <ShareModal tokens={cloudTokens} onClose={() => setShowShare(false)} />
+      )}
     </div>
+  );
+}
+
+function SyncBadge({ status }) {
+  if (status === 'saving') return <Loader2 size={12} className="animate-spin ml-1 opacity-80" />;
+  if (status === 'error') return <CloudOff size={12} className="ml-1 text-rose-300" />;
+  if (status === 'saved') return <Cloud size={12} className="ml-1 opacity-80" />;
+  return null;
+}
+
+function ShareModal({ tokens, onClose }) {
+  const { viewUrl, editUrl } = buildShareUrls({ view: tokens.view_token, edit: tokens.edit_token });
+  const [copied, setCopied] = useState('');
+  const copy = async (label, text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(label);
+      setTimeout(() => setCopied(''), 1500);
+    } catch { /* ignore */ }
+  };
+  return (
+    <Modal onClose={onClose}>
+      <div>
+        <div className="font-semibold text-lg mb-0.5 flex items-center gap-2"><Share2 size={18} className="text-blue-600" /> 分享比赛</div>
+        <div className="text-xs text-slate-400 uppercase tracking-wider mb-4">Share this tournament</div>
+
+        <div className="mb-4">
+          <div className="text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5"><Eye size={12} /> 只读观看 · View-only link</div>
+          <div className="flex gap-1.5">
+            <input readOnly value={viewUrl} className="flex-1 px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-xs font-mono truncate" onFocus={(e) => e.target.select()} />
+            <button onClick={() => copy('view', viewUrl)} className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center gap-1"><Copy size={12} />{copied === 'view' ? '已复制' : '复制'}</button>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-1">分享给观众/球员看积分和大屏。他们无法修改比分。</p>
+        </div>
+
+        {editUrl && (
+          <div className="mb-4">
+            <div className="text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5"><Share2 size={12} /> 管理链接 · Editor link</div>
+            <div className="flex gap-1.5">
+              <input readOnly value={editUrl} className="flex-1 px-2.5 py-2 rounded-lg border border-amber-200 bg-amber-50 text-xs font-mono truncate" onFocus={(e) => e.target.select()} />
+              <button onClick={() => copy('edit', editUrl)} className="px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium flex items-center gap-1"><Copy size={12} />{copied === 'edit' ? '已复制' : '复制'}</button>
+            </div>
+            <p className="text-[11px] text-rose-500 mt-1">⚠ 谨慎分享：拿到此链接的人可以修改所有比分。</p>
+          </div>
+        )}
+
+        <button onClick={onClose} className="w-full py-2.5 rounded-xl border border-slate-300 font-medium text-sm">关闭 Close</button>
+      </div>
+    </Modal>
   );
 }
 
