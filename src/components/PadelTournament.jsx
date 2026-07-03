@@ -1,4 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+
+const LS_KEY = 'padel-tournament-state-v1';
+const loadPersisted = () => {
+  if (typeof window === 'undefined') return {};
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}') || {}; }
+  catch { return {}; }
+};
+const _persisted = loadPersisted();
+const pget = (k, fallback) => (k in _persisted ? _persisted[k] : fallback);
 import * as XLSX from 'xlsx';
 import {
   Trophy, Users, Home, Crown, Plus, Minus, Coffee, Swords, Flag, Check, Medal,
@@ -169,25 +178,36 @@ function Bi({ zh, en, className = '', enCls = 'text-slate-400' }) {
 }
 
 export default function PadelTournament() {
-  const [stage, setStage] = useState('setup');
+  const [stage, setStage] = useState(() => pget('stage', 'setup'));
   const [resumeStage, setResumeStage] = useState(null);
   const [confirmRegen, setConfirmRegen] = useState(false);
-  const [title, setTitle] = useState('Padel 循环赛');
-  const [teams, setTeams] = useState(['队伍 1', '队伍 2', '队伍 3', '队伍 4', '队伍 5', '队伍 6', '队伍 7', '队伍 8']);
-  const [groupOf, setGroupOf] = useState(['A', 'A', 'A', 'A', 'B', 'B', 'B', 'B']);
-  const [mode, setMode] = useState('single');
-  const [advancePerGroup, setAdvancePerGroup] = useState(2);
-  const [numRounds, setNumRounds] = useState(fullRounds(8));
-  const [defaultSets, setDefaultSets] = useState(1);
-  const [schedules, setSchedules] = useState({});
-  const [results, setResults] = useState({});
-  const [ko, setKo] = useState({});
-  const [activeGroup, setActiveGroup] = useState('single');
-  const [activeRound, setActiveRound] = useState(0);
-  const [amSchedule, setAmSchedule] = useState([]);
-  const [amResults, setAmResults] = useState({});
-  const [amRound, setAmRound] = useState(0);
+  const [title, setTitle] = useState(() => pget('title', 'Padel 循环赛'));
+  const [teams, setTeams] = useState(() => pget('teams', ['队伍 1', '队伍 2', '队伍 3', '队伍 4', '队伍 5', '队伍 6', '队伍 7', '队伍 8']));
+  const [groupOf, setGroupOf] = useState(() => pget('groupOf', ['A', 'A', 'A', 'A', 'B', 'B', 'B', 'B']));
+  const [mode, setMode] = useState(() => pget('mode', 'single'));
+  const [advancePerGroup, setAdvancePerGroup] = useState(() => pget('advancePerGroup', 2));
+  const [numRounds, setNumRounds] = useState(() => pget('numRounds', fullRounds(8)));
+  const [defaultSets, setDefaultSets] = useState(() => pget('defaultSets', 1));
+  const [schedules, setSchedules] = useState(() => pget('schedules', {}));
+  const [results, setResults] = useState(() => pget('results', {}));
+  const [ko, setKo] = useState(() => pget('ko', {}));
+  const [activeGroup, setActiveGroup] = useState(() => pget('activeGroup', 'single'));
+  const [activeRound, setActiveRound] = useState(() => pget('activeRound', 0));
+  const [amSchedule, setAmSchedule] = useState(() => pget('amSchedule', []));
+  const [amResults, setAmResults] = useState(() => pget('amResults', {}));
+  const [amRound, setAmRound] = useState(() => pget('amRound', 0));
   const [showBig, setShowBig] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
+        schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound,
+      }));
+    } catch { /* quota / private mode */ }
+  }, [stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
+      schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound]);
 
   const isAm = mode === 'americano';
   const sizeA = groupOf.filter((g) => g === 'A').length;

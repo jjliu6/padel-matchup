@@ -77,18 +77,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Padel Matchup" },
-      { name: "description", content: "Pixel Perfect Replica creates an exact visual copy of a provided screenshot." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Padel Matchup" },
-      { property: "og:description", content: "Pixel Perfect Replica creates an exact visual copy of a provided screenshot." },
+      { title: "Padel Matchup — Tournament Manager" },
+      { name: "description", content: "Run padel tournaments end-to-end: group stage, Americano rotations, knockout brackets, live standings, and Excel export." },
+      { property: "og:site_name", content: "Padel Matchup" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Padel Matchup" },
-      { name: "twitter:description", content: "Pixel Perfect Replica creates an exact visual copy of a provided screenshot." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8318afd2-f6f0-40a6-a978-4060f96cd2ad/id-preview-429223a9--bcf3d7bb-eb1d-4be4-babe-8045f8a7c2c3.lovable.app-1783061429571.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8318afd2-f6f0-40a6-a978-4060f96cd2ad/id-preview-429223a9--bcf3d7bb-eb1d-4be4-babe-8045f8a7c2c3.lovable.app-1783061429571.png" },
     ],
     links: [
       {
