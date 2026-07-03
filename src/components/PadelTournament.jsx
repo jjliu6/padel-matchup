@@ -394,6 +394,35 @@ export default function PadelTournament() {
   const goHome = () => { setResumeStage(stage); setStage('setup'); };
   const resume = () => { setStage(resumeStage); setResumeStage(null); };
 
+  const [confirmNew, setConfirmNew] = useState(false);
+  const startNewSession = () => {
+    try { localStorage.removeItem(LS_KEY); } catch {}
+    updateUrlTokens({ view: null, edit: null });
+    setCloudTokens(null);
+    setReadOnly(false);
+    setSyncStatus('idle');
+    lastSavedRef.current = '';
+    setResumeStage(null);
+    setStage('setup');
+    setTitle('Padel 循环赛');
+    setTeams(['队伍 1', '队伍 2', '队伍 3', '队伍 4', '队伍 5', '队伍 6', '队伍 7', '队伍 8']);
+    setGroupOf(['A', 'A', 'A', 'A', 'B', 'B', 'B', 'B']);
+    setMode('single');
+    setAdvancePerGroup(2);
+    setNumRounds(fullRounds(8));
+    setDefaultSets(1);
+    setSchedules({});
+    setResults({});
+    setKo({});
+    setActiveGroup('single');
+    setActiveRound(0);
+    setAmSchedule([]);
+    setAmResults({});
+    setAmRound(0);
+    setConfirmNew(false);
+  };
+
+
   const saveScore = (g, ri, mi, sets) => setResults((p) => ({ ...p, [key(g, ri, mi)]: { sets, done: true } }));
   const clearScore = (g, ri, mi) => setResults((p) => { const n = { ...p }; delete n[key(g, ri, mi)]; return n; });
   const saveAm = (ri, ci, s1, s2) => setAmResults((p) => ({ ...p, [`${ri}-${ci}`]: { s1, s2, done: true } }));
