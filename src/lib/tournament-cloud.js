@@ -1,4 +1,21 @@
-import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@supabase/supabase-js";
+
+// Public Lovable Cloud client for anonymous tournament sharing. These values are
+// publishable frontend config, not private credentials. Keeping a local fallback
+// prevents published builds from losing share/sync when managed VITE env injection
+// is stale or unavailable.
+const CLOUD_URL = import.meta.env.VITE_SUPABASE_URL || "https://eevtrshfhhcjnhrdfecs.supabase.co";
+const CLOUD_PUBLISHABLE_KEY =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVldnRyc2hmaGhjam5ocmRmZWNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwNDcwMjEsImV4cCI6MjA5ODYyMzAyMX0.xFUvHGXrphXWAOH2_J1K4FK2wam5yqBcYJHEkI0VYyM";
+
+const supabase = createClient(CLOUD_URL, CLOUD_PUBLISHABLE_KEY, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false,
+  },
+});
 
 const PARAM_VIEW = "v";
 const PARAM_EDIT = "e";
