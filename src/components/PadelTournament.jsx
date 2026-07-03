@@ -652,9 +652,9 @@ function Modal({ children, onClose }) {
 function SetupView(p) {
   const { title, setTitle, teams, setTeamName, addTeam, removeTeam, numRounds, setNumRounds, maxRounds,
     mode, chooseMode, groupOf, setGroup, sizeA, sizeB, advancePerGroup, setAdvancePerGroup, canStart, onStart,
-    isAm, resumeStage, onResume, defaultSets, setDefaultSets } = p;
+    isAm, resumeStage, onResume, defaultSets, setDefaultSets, canEdit = true } = p;
   const rounds = Math.min(Math.max(1, numRounds), maxRounds);
-  const stepRounds = (d) => setNumRounds(Math.min(maxRounds, Math.max(1, rounds + d)));
+  const stepRounds = (d) => { if (canEdit) setNumRounds(Math.min(maxRounds, Math.max(1, rounds + d))); };
   const isDouble = mode === 'double';
   const unit = isAm ? '选手 / Players' : '队伍 / Teams';
   const card = 'bg-white rounded-2xl border border-slate-200/70 shadow-sm shadow-slate-300/40 p-5';
@@ -682,7 +682,7 @@ function SetupView(p) {
 
       <div className={card}>
         <label className="block mb-1.5"><Bi zh="比赛名称" en="Tournament Name" className="text-sm font-medium text-slate-600" /></label>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <input value={title} onChange={(e) => canEdit && setTitle(e.target.value)} disabled={!canEdit} className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-500" />
       </div>
 
       <div className={card}>
@@ -695,7 +695,7 @@ function SetupView(p) {
         {isDouble && (
           <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
             <span className="text-slate-500">每组出线数 <span className="text-xs text-slate-400">Advance</span></span>
-            {[1, 2].map((n) => <button key={n} onClick={() => setAdvancePerGroup(n)} className={`px-3 py-1 rounded-lg border ${advancePerGroup === n ? 'bg-blue-700 text-white border-blue-700' : 'border-slate-300 text-slate-600'}`}>前 {n} 名</button>)}
+            {[1, 2].map((n) => <button key={n} onClick={() => canEdit && setAdvancePerGroup(n)} disabled={!canEdit} className={`px-3 py-1 rounded-lg border disabled:opacity-50 ${advancePerGroup === n ? 'bg-blue-700 text-white border-blue-700' : 'border-slate-300 text-slate-600'}`}>前 {n} 名</button>)}
             <span className="text-xs text-slate-400">{advancePerGroup === 2 ? '→ 交叉半决赛 / Crossover semis' : '→ 两冠军决赛 / Winners final'}</span>
           </div>
         )}
@@ -703,7 +703,7 @@ function SetupView(p) {
           <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
             <span className="text-slate-500">默认盘数 <span className="text-xs text-slate-400">Sets / Match</span></span>
             {[[1, '一盘定胜负', '1 Set'], [3, '三盘两胜', 'Best of 3']].map(([n, zh, en]) => (
-              <button key={n} onClick={() => setDefaultSets(n)} className={`px-3 py-1 rounded-lg border ${defaultSets === n ? 'bg-blue-700 text-white border-blue-700' : 'border-slate-300 text-slate-600'}`}>{zh} <span className="text-[10px] opacity-70">{en}</span></button>
+                <button key={n} onClick={() => canEdit && setDefaultSets(n)} disabled={!canEdit} className={`px-3 py-1 rounded-lg border disabled:opacity-50 ${defaultSets === n ? 'bg-blue-700 text-white border-blue-700' : 'border-slate-300 text-slate-600'}`}>{zh} <span className="text-[10px] opacity-70">{en}</span></button>
             ))}
             <span className="text-xs text-slate-400">记分时仍可临时加减 · adjustable per match</span>
           </div>
@@ -713,19 +713,19 @@ function SetupView(p) {
       <div className={card}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2"><Users size={18} className="text-blue-700" /><span className="font-semibold">参赛{unit}</span><span className="text-sm font-normal text-slate-500">· {teams.length}</span></div>
-          <button onClick={addTeam} className="flex items-center gap-1 text-sm text-blue-700 hover:text-blue-900 font-medium"><Plus size={16} /> 添加 Add</button>
+          <button onClick={addTeam} disabled={!canEdit} className="flex items-center gap-1 text-sm text-blue-700 hover:text-blue-900 font-medium disabled:opacity-40 disabled:hover:text-blue-700"><Plus size={16} /> 添加 Add</button>
         </div>
         <div className="grid sm:grid-cols-2 gap-2">
           {teams.map((t, i) => (
             <div key={i} className="flex items-center gap-2">
               <span className="w-5 text-right text-sm text-slate-400">{i + 1}</span>
-              <input value={t} onChange={(e) => setTeamName(i, e.target.value)} className="flex-1 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input value={t} onChange={(e) => setTeamName(i, e.target.value)} disabled={!canEdit} className="flex-1 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-500" />
               {isDouble && (
                 <div className="flex rounded-lg overflow-hidden border border-slate-300 text-sm">
-                  {['A', 'B'].map((g) => <button key={g} onClick={() => setGroup(i, g)} className={`px-2.5 py-1.5 ${groupOf[i] === g ? (g === 'A' ? 'bg-sky-600 text-white' : 'bg-orange-500 text-white') : 'bg-white text-slate-500'}`}>{g}</button>)}
+                  {['A', 'B'].map((g) => <button key={g} onClick={() => setGroup(i, g)} disabled={!canEdit} className={`px-2.5 py-1.5 disabled:opacity-60 ${groupOf[i] === g ? (g === 'A' ? 'bg-sky-600 text-white' : 'bg-orange-500 text-white') : 'bg-white text-slate-500'}`}>{g}</button>)}
                 </div>
               )}
-              <button onClick={() => removeTeam(i)} disabled={teams.length <= 2} className="text-slate-400 hover:text-rose-500 disabled:opacity-30 p-1"><Minus size={16} /></button>
+              <button onClick={() => removeTeam(i)} disabled={!canEdit || teams.length <= 2} className="text-slate-400 hover:text-rose-500 disabled:opacity-30 p-1"><Minus size={16} /></button>
             </div>
           ))}
         </div>
@@ -739,9 +739,9 @@ function SetupView(p) {
           {isAm ? <>建议 {Math.min(6, maxRounds)}–{maxRounds} 轮，超过后搭档会重复。<span className="text-xs text-slate-400"> Beyond {maxRounds} rounds partners repeat.</span></> : <>{isDouble ? '两组各自' : ''}打满 <b>{maxRounds}</b> 轮为完整循环。<span className="text-xs text-slate-400"> Full round robin = {maxRounds} rounds.</span></>}
         </p>
         <div className="flex items-center gap-3">
-          <button onClick={() => stepRounds(-1)} className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center"><Minus size={16} /></button>
+          <button onClick={() => stepRounds(-1)} disabled={!canEdit} className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center disabled:opacity-40"><Minus size={16} /></button>
           <div className="text-center"><div className="text-2xl font-bold text-blue-800 tabular-nums">{rounds}</div><div className="text-xs text-slate-400">轮 / of {maxRounds}</div></div>
-          <button onClick={() => stepRounds(1)} className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center"><Plus size={16} /></button>
+          <button onClick={() => stepRounds(1)} disabled={!canEdit} className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center disabled:opacity-40"><Plus size={16} /></button>
           {rounds === maxRounds && !isAm && <span className="text-xs text-emerald-600 ml-1">完整循环 / Full</span>}
         </div>
       </div>
@@ -753,7 +753,7 @@ function SetupView(p) {
             : <>{rounds} 轮单循环 → 前 {teams.length >= 4 ? 4 : 2} 名 → {teams.length >= 4 ? '半决赛 → 决赛' : '决赛'} <span className="text-xs text-blue-500">/ Round robin → knockout</span></>}
       </div>
 
-      <button onClick={onStart} disabled={!canStart} className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-40 disabled:from-slate-400 disabled:to-slate-400 text-white font-semibold rounded-xl py-3.5 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 transition-all">
+      <button onClick={onStart} disabled={!canEdit || !canStart} className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-40 disabled:from-slate-400 disabled:to-slate-400 text-white font-semibold rounded-xl py-3.5 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 transition-all">
         生成赛程，开始比赛 <span className="text-xs font-normal opacity-80">Generate &amp; Start</span> <ArrowRight size={18} />
       </button>
     </div>
