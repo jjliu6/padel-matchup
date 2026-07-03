@@ -394,6 +394,35 @@ export default function PadelTournament() {
   const goHome = () => { setResumeStage(stage); setStage('setup'); };
   const resume = () => { setStage(resumeStage); setResumeStage(null); };
 
+  const [confirmNew, setConfirmNew] = useState(false);
+  const startNewSession = () => {
+    try { localStorage.removeItem(LS_KEY); } catch {}
+    updateUrlTokens({ view: null, edit: null });
+    setCloudTokens(null);
+    setReadOnly(false);
+    setSyncStatus('idle');
+    lastSavedRef.current = '';
+    setResumeStage(null);
+    setStage('setup');
+    setTitle('Padel 循环赛');
+    setTeams(['队伍 1', '队伍 2', '队伍 3', '队伍 4', '队伍 5', '队伍 6', '队伍 7', '队伍 8']);
+    setGroupOf(['A', 'A', 'A', 'A', 'B', 'B', 'B', 'B']);
+    setMode('single');
+    setAdvancePerGroup(2);
+    setNumRounds(fullRounds(8));
+    setDefaultSets(1);
+    setSchedules({});
+    setResults({});
+    setKo({});
+    setActiveGroup('single');
+    setActiveRound(0);
+    setAmSchedule([]);
+    setAmResults({});
+    setAmRound(0);
+    setConfirmNew(false);
+  };
+
+
   const saveScore = (g, ri, mi, sets) => setResults((p) => ({ ...p, [key(g, ri, mi)]: { sets, done: true } }));
   const clearScore = (g, ri, mi) => setResults((p) => { const n = { ...p }; delete n[key(g, ri, mi)]; return n; });
   const saveAm = (ri, ci, s1, s2) => setAmResults((p) => ({ ...p, [`${ri}-${ci}`]: { s1, s2, done: true } }));
@@ -445,7 +474,8 @@ export default function PadelTournament() {
                   : <button onClick={handlePublish} disabled={publishing} title="发布并生成分享链接 / Publish & share" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50">{publishing ? <Loader2 size={15} className="animate-spin" /> : <Share2 size={15} />} 分享<span className="hidden sm:inline text-[10px] font-normal opacity-70 ml-0.5">Share</span></button>
               )}
               {stage !== 'setup' && <button onClick={() => exportToExcel(exportModel)} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><FileSpreadsheet size={15} /> Excel</button>}
-              {stage !== 'setup' && <button onClick={goHome} title="返回首页 / Home" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Home size={15} /> 首页</button>}
+              {stage !== 'setup' && <button onClick={goHome} title="返回设置页（保留数据）/ Back to setup (keeps data)" className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Home size={15} /> 首页</button>}
+              {!readOnly && <button onClick={() => setConfirmNew(true)} title="开始一场全新赛事（清空所有数据）/ Start new tournament (clears all)" className="flex items-center gap-1 text-sm bg-rose-500/90 hover:bg-rose-500 text-white px-2.5 py-1.5 rounded-lg transition-colors"><Plus size={15} /> 新建<span className="hidden sm:inline text-[10px] font-normal opacity-80 ml-0.5">New</span></button>}
             </div>
           </div>
         </header>
@@ -496,6 +526,25 @@ export default function PadelTournament() {
           </div>
         </Modal>
       )}
+
+      {confirmNew && (
+        <Modal onClose={() => setConfirmNew(false)}>
+          <div className="text-center">
+            <div className="font-semibold text-lg mb-0.5">开始一场全新赛事？</div>
+            <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Start a new tournament?</div>
+            <p className="text-sm text-slate-500 mb-5">
+              会<b className="text-rose-500">清空所有队伍、赛程和比分</b>，并断开当前的分享链接。<br />
+              <span className="text-xs text-slate-400">Clears all teams, schedule and scores, and disconnects the current share link.</span><br />
+              <span className="text-xs text-slate-500 mt-2 inline-block">如果只是想临时看别的页面，请点「首页」而不是「新建」。<br /><span className="text-slate-400">To just navigate around while keeping data, use “首页 Home” instead.</span></span>
+            </p>
+            <div className="flex gap-2">
+              <button onClick={() => setConfirmNew(false)} className="flex-1 py-2.5 rounded-xl border border-slate-300 font-medium">取消 Cancel</button>
+              <button onClick={startNewSession} className="flex-1 py-2.5 rounded-xl bg-rose-500 text-white font-medium">确定 Confirm</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
 
       {showBig && <BigScreen title={title} mode={mode} groups={bigGroups} bracket={bracket} results={results} amSchedule={amSchedule} amResults={amResults} amLeaderboard={amLeaderboard} onClose={() => setShowBig(false)} />}
 
