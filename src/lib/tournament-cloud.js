@@ -1,10 +1,10 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
-const PARAM_VIEW = 'v';
-const PARAM_EDIT = 'e';
+const PARAM_VIEW = "v";
+const PARAM_EDIT = "e";
 
 export function getUrlTokens() {
-  if (typeof window === 'undefined') return { view: null, edit: null };
+  if (typeof window === "undefined") return { view: null, edit: null };
   const u = new URL(window.location.href);
   return {
     view: u.searchParams.get(PARAM_VIEW),
@@ -13,29 +13,35 @@ export function getUrlTokens() {
 }
 
 export function updateUrlTokens({ view, edit }) {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   const u = new URL(window.location.href);
-  if (view) u.searchParams.set(PARAM_VIEW, view); else u.searchParams.delete(PARAM_VIEW);
-  if (edit) u.searchParams.set(PARAM_EDIT, edit); else u.searchParams.delete(PARAM_EDIT);
-  window.history.replaceState({}, '', u.toString());
+  if (view) u.searchParams.set(PARAM_VIEW, view);
+  else u.searchParams.delete(PARAM_VIEW);
+  if (edit) u.searchParams.set(PARAM_EDIT, edit);
+  else u.searchParams.delete(PARAM_EDIT);
+  window.history.replaceState({}, "", u.toString());
 }
 
 // Public share base — never use preview/lovable.app origins because those
 // are gated behind a Lovable login and confuse viewers. Fall back to the
 // current origin only when running on a non-lovable host.
-const PUBLIC_SHARE_BASE = 'https://padel-matchup.philosophie.ai';
+const PUBLIC_SHARE_BASE = "https://padel-matchup.philosophie.ai";
 
 function shareBase() {
-  if (typeof window === 'undefined') return PUBLIC_SHARE_BASE;
+  if (typeof window === "undefined") return PUBLIC_SHARE_BASE;
   const host = window.location.hostname;
-  const isLovable = host.endsWith('.lovable.app') || host.endsWith('.lovable.dev') || host === 'localhost' || host.startsWith('127.');
+  const isLovable =
+    host.endsWith(".lovable.app") ||
+    host.endsWith(".lovable.dev") ||
+    host === "localhost" ||
+    host.startsWith("127.");
   return isLovable ? PUBLIC_SHARE_BASE : window.location.origin;
 }
 
 export function buildShareUrls({ view, edit }) {
-  const base = shareBase() + '/';
-  const viewUrl = view ? `${base}?${PARAM_VIEW}=${view}` : '';
-  const editUrl = view && edit ? `${base}?${PARAM_VIEW}=${view}&${PARAM_EDIT}=${edit}` : '';
+  const base = shareBase() + "/";
+  const viewUrl = view ? `${base}?${PARAM_VIEW}=${view}` : "";
+  const editUrl = view && edit ? `${base}?${PARAM_VIEW}=${view}&${PARAM_EDIT}=${edit}` : "";
   return { viewUrl, editUrl };
 }
 
@@ -44,12 +50,14 @@ export function subscribeTournament(viewToken, onChange) {
     config: { broadcast: { self: false } },
   });
   channel
-    .on('broadcast', { event: 'update' }, (msg) => {
+    .on("broadcast", { event: "update" }, (msg) => {
       const state = msg?.payload?.state;
       if (state) onChange(state);
     })
     .subscribe();
-  return () => { supabase.removeChannel(channel); };
+  return () => {
+    supabase.removeChannel(channel);
+  };
 }
 
 // Fire-and-forget broadcast after a successful save so viewers refresh instantly.
@@ -58,34 +66,33 @@ export async function broadcastTournament(viewToken, state) {
     const channel = supabase.channel(`tournament:${viewToken}`);
     await new Promise((resolve) => {
       channel.subscribe((status) => {
-        if (status === 'SUBSCRIBED') resolve();
+        if (status === "SUBSCRIBED") resolve();
       });
       setTimeout(resolve, 1500);
     });
-    await channel.send({ type: 'broadcast', event: 'update', payload: { state } });
+    await channel.send({ type: "broadcast", event: "update", payload: { state } });
     setTimeout(() => supabase.removeChannel(channel), 500);
   } catch (e) {
     // best effort
   }
 }
 
-
 export async function createTournament(state) {
-  const { data, error } = await supabase.rpc('create_tournament', { initial_state: state });
+  const { data, error } = await supabase.rpc("create_tournament", { initial_state: state });
   if (error) throw error;
   const row = Array.isArray(data) ? data[0] : data;
   return row; // { id, view_token, edit_token }
 }
 
 export async function loadTournament(viewToken) {
-  const { data, error } = await supabase.rpc('load_tournament', { _view_token: viewToken });
+  const { data, error } = await supabase.rpc("load_tournament", { _view_token: viewToken });
   if (error) throw error;
   const row = Array.isArray(data) ? data[0] : data;
   return row || null; // { state, updated_at }
 }
 
 export async function saveTournament(editToken, state) {
-  const { data, error } = await supabase.rpc('save_tournament', {
+  const { data, error } = await supabase.rpc("save_tournament", {
     _edit_token: editToken,
     _state: state,
   });
