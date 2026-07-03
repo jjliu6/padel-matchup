@@ -459,7 +459,7 @@ export default function PadelTournament() {
           </div>
         )}
 
-        <main className="max-w-5xl mx-auto px-4 py-6">
+        <main className="max-w-5xl mx-auto px-4 py-6" {...(readOnly ? { inert: '' } : {})}>
           {stage === 'setup' && (
             <SetupView {...{ title, setTitle, teams, setTeamName, addTeam, removeTeam, numRounds, setNumRounds, maxRounds,
               mode, chooseMode, groupOf, setGroup, sizeA, sizeB, advancePerGroup, setAdvancePerGroup, canStart, onStart: start,
@@ -474,6 +474,7 @@ export default function PadelTournament() {
             <AmericanoView {...{ amSchedule, amResults, amRound, setAmRound, saveAm, clearAm, leaderboard: amLeaderboard, progress: amProgress }} />
           )}
         </main>
+
 
         <footer className="max-w-5xl mx-auto px-4 pb-8 pt-2 text-center">
           <div className="text-xs text-slate-400">
