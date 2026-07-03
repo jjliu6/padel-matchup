@@ -8,13 +8,11 @@ const DESC =
   "Run padel tournaments end-to-end: group stage, Americano rotations, knockout brackets, live standings, big-screen mode, and Excel export.";
 const OG_IMAGE = `${SITE}/og-cover.jpg`;
 
-// SoftwareApplication schema so search and AI answer engines can cite what
-// Padel Matchup is, that it's free, and where the source lives.
 const STRUCTURED_DATA = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "Padel Matchup",
-  url: SITE + "/",
+  url: SITE + "/en",
   description: DESC,
   applicationCategory: "SportsApplication",
   operatingSystem: "Any (web-based)",
@@ -27,7 +25,7 @@ const STRUCTURED_DATA = {
   },
 };
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/en")({
   head: () => ({
     meta: [
       { title: TITLE },
@@ -35,7 +33,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: SITE + "/" },
+      { property: "og:url", content: SITE + "/en" },
       { property: "og:image", content: OG_IMAGE },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "640" },
@@ -46,24 +44,24 @@ export const Route = createFileRoute("/")({
       { name: "twitter:image", content: OG_IMAGE },
     ],
     links: [
-      { rel: "canonical", href: SITE + "/" },
+      { rel: "canonical", href: SITE + "/en" },
       { rel: "alternate", hreflang: "x-default", href: SITE + "/" },
       { rel: "alternate", hreflang: "zh", href: SITE + "/" },
       { rel: "alternate", hreflang: "en", href: SITE + "/en" },
       { rel: "alternate", hreflang: "es", href: SITE + "/es" },
     ],
   }),
-  component: HomePage,
+  component: EnglishPage,
 });
 
-function HomePage() {
+function EnglishPage() {
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
       />
-      <PadelTournament initialLang="bilingual" />
+      <PadelTournament initialLang="en" />
     </>
   );
 }
