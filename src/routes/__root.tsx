@@ -78,7 +78,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Padel Matchup — Tournament Manager" },
-      { name: "description", content: "Run padel tournaments end-to-end: group stage, Americano rotations, knockout brackets, live standings, and Excel export." },
+      {
+        name: "description",
+        content:
+          "Run padel tournaments end-to-end: group stage, Americano rotations, knockout brackets, live standings, and Excel export.",
+      },
       { property: "og:site_name", content: "Padel Matchup" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

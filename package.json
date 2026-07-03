@@ -1,6 +1,6 @@
 {
-  "name": "tanstack_start_ts",
-  "private": true,
+  "name": "padel-matchup",
+  "private": false,
   "sideEffects": false,
   "type": "module",
   "scripts": {
@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -86,5 +87,16 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^8.0.16"
-  }
+  },
+  "description": "Open-source padel tournament manager with round robin, Americano, knockout, live sharing, big-screen mode, and Excel export.",
+  "keywords": [
+    "padel",
+    "tournament",
+    "round-robin",
+    "americano",
+    "react",
+    "supabase"
+  ],
+  "license": "MIT",
+  "homepage": "https://padel-matchup.philosophie.ai/"
 }

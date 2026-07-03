@@ -4,7 +4,8 @@ import PadelTournament from "@/components/PadelTournament.jsx";
 
 const SITE = "https://padel-matchup.philosophie.ai";
 const TITLE = "Padel Matchup — Tournament Manager";
-const DESC = "Run padel tournaments end-to-end: group stage, Americano rotations, knockout brackets, live standings, big-screen mode, and Excel export.";
+const DESC =
+  "Run padel tournaments end-to-end: group stage, Americano rotations, knockout brackets, live standings, big-screen mode, and Excel export.";
 const OG_IMAGE = `${SITE}/og-cover.jpg`;
 
 export const Route = createFileRoute("/")({
