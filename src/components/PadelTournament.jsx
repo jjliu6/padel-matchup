@@ -199,16 +199,129 @@ export default function PadelTournament() {
   const [amRound, setAmRound] = useState(() => pget('amRound', 0));
   const [showBig, setShowBig] = useState(false);
 
+  // ----- Cloud share/sync -----
+  const [cloudTokens, setCloudTokens] = useState(null); // { view_token, edit_token } | null
+  const [readOnly, setReadOnly] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [syncStatus, setSyncStatus] = useState('idle'); // idle|saving|saved|error|loading
+  const [publishing, setPublishing] = useState(false);
+  const initialLoadRef = useRef(false);
+  const saveTimerRef = useRef(null);
+  const lastSavedRef = useRef('');
+
+  // Bundle current state to serialize to cloud
+  const buildState = () => ({
+    stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
+    schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound,
+  });
+
+  const applyRemoteState = (s) => {
+    if (!s || typeof s !== 'object') return;
+    if ('stage' in s) setStage(s.stage);
+    if ('title' in s) setTitle(s.title);
+    if ('teams' in s) setTeams(s.teams);
+    if ('groupOf' in s) setGroupOf(s.groupOf);
+    if ('mode' in s) setMode(s.mode);
+    if ('advancePerGroup' in s) setAdvancePerGroup(s.advancePerGroup);
+    if ('numRounds' in s) setNumRounds(s.numRounds);
+    if ('defaultSets' in s) setDefaultSets(s.defaultSets);
+    if ('schedules' in s) setSchedules(s.schedules);
+    if ('results' in s) setResults(s.results);
+    if ('ko' in s) setKo(s.ko);
+    if ('activeGroup' in s) setActiveGroup(s.activeGroup);
+    if ('activeRound' in s) setActiveRound(s.activeRound);
+    if ('amSchedule' in s) setAmSchedule(s.amSchedule);
+    if ('amResults' in s) setAmResults(s.amResults);
+    if ('amRound' in s) setAmRound(s.amRound);
+  };
+
+  // Initial load: check URL for share tokens
+  useEffect(() => {
+    if (initialLoadRef.current) return;
+    initialLoadRef.current = true;
+    const { view, edit } = getUrlTokens();
+    if (!view) return;
+    setSyncStatus('loading');
+    loadTournament(view).then((row) => {
+      if (!row) { setSyncStatus('error'); return; }
+      applyRemoteState(row.state);
+      lastSavedRef.current = JSON.stringify(row.state);
+      if (edit) {
+        setCloudTokens({ view_token: view, edit_token: edit });
+        setReadOnly(false);
+      } else {
+        setCloudTokens({ view_token: view, edit_token: null });
+        setReadOnly(true);
+      }
+      setSyncStatus('saved');
+    }).catch(() => setSyncStatus('error'));
+  }, []);
+
+  // Local persistence (skip in read-only mode so a viewer's changes don't overwrite their own restore)
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (readOnly) return;
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify({
-        stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
-        schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound,
-      }));
+      localStorage.setItem(LS_KEY, JSON.stringify(buildState()));
     } catch { /* quota / private mode */ }
-  }, [stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
+  }, [readOnly, stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
       schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound]);
+
+  // Debounced cloud auto-save when we hold the edit token
+  useEffect(() => {
+    if (!cloudTokens?.edit_token) return;
+    const payload = buildState();
+    const serialized = JSON.stringify(payload);
+    if (serialized === lastSavedRef.current) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    setSyncStatus('saving');
+    saveTimerRef.current = setTimeout(async () => {
+      try {
+        await saveTournament(cloudTokens.edit_token, payload);
+        lastSavedRef.current = serialized;
+        setSyncStatus('saved');
+      } catch {
+        setSyncStatus('error');
+      }
+    }, 800);
+    return () => saveTimerRef.current && clearTimeout(saveTimerRef.current);
+  }, [cloudTokens, stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
+      schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound]);
+
+  // Poll every 6s in read-only view mode so watchers see live updates
+  useEffect(() => {
+    if (!readOnly || !cloudTokens?.view_token) return;
+    const iv = setInterval(async () => {
+      try {
+        const row = await loadTournament(cloudTokens.view_token);
+        if (!row) return;
+        const serialized = JSON.stringify(row.state);
+        if (serialized !== lastSavedRef.current) {
+          applyRemoteState(row.state);
+          lastSavedRef.current = serialized;
+        }
+      } catch { /* ignore transient errors */ }
+    }, 6000);
+    return () => clearInterval(iv);
+  }, [readOnly, cloudTokens]);
+
+  const handlePublish = async () => {
+    setPublishing(true);
+    try {
+      const row = await createTournament(buildState());
+      const tokens = { view_token: row.view_token, edit_token: row.edit_token };
+      setCloudTokens(tokens);
+      lastSavedRef.current = JSON.stringify(buildState());
+      updateUrlTokens({ view: tokens.view_token, edit: tokens.edit_token });
+      setSyncStatus('saved');
+      setShowShare(true);
+    } catch (e) {
+      setSyncStatus('error');
+      alert('发布失败 / Publish failed: ' + (e?.message || e));
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   const isAm = mode === 'americano';
   const sizeA = groupOf.filter((g) => g === 'A').length;
