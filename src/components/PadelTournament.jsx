@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { createTournament, loadTournament, saveTournament, getUrlTokens, updateUrlTokens, buildShareUrls } from '@/lib/tournament-cloud';
+import { createTournament, loadTournament, saveTournament, getUrlTokens, updateUrlTokens, buildShareUrls, subscribeTournament } from '@/lib/tournament-cloud';
+import QRCode from 'qrcode';
 
 const LS_KEY = 'padel-tournament-state-v1';
 const loadPersisted = () => {
