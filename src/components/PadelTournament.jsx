@@ -497,7 +497,60 @@ export default function PadelTournament() {
       )}
 
       {showBig && <BigScreen title={title} mode={mode} groups={bigGroups} bracket={bracket} results={results} amSchedule={amSchedule} amResults={amResults} amLeaderboard={amLeaderboard} onClose={() => setShowBig(false)} />}
+
+      {showShare && cloudTokens && (
+        <ShareModal tokens={cloudTokens} onClose={() => setShowShare(false)} />
+      )}
     </div>
+  );
+}
+
+function SyncBadge({ status }) {
+  if (status === 'saving') return <Loader2 size={12} className="animate-spin ml-1 opacity-80" />;
+  if (status === 'error') return <CloudOff size={12} className="ml-1 text-rose-300" />;
+  if (status === 'saved') return <Cloud size={12} className="ml-1 opacity-80" />;
+  return null;
+}
+
+function ShareModal({ tokens, onClose }) {
+  const { viewUrl, editUrl } = buildShareUrls({ view: tokens.view_token, edit: tokens.edit_token });
+  const [copied, setCopied] = useState('');
+  const copy = async (label, text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(label);
+      setTimeout(() => setCopied(''), 1500);
+    } catch { /* ignore */ }
+  };
+  return (
+    <Modal onClose={onClose}>
+      <div>
+        <div className="font-semibold text-lg mb-0.5 flex items-center gap-2"><Share2 size={18} className="text-blue-600" /> 分享比赛</div>
+        <div className="text-xs text-slate-400 uppercase tracking-wider mb-4">Share this tournament</div>
+
+        <div className="mb-4">
+          <div className="text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5"><Eye size={12} /> 只读观看 · View-only link</div>
+          <div className="flex gap-1.5">
+            <input readOnly value={viewUrl} className="flex-1 px-2.5 py-2 rounded-lg border border-slate-200 bg-slate-50 text-xs font-mono truncate" onFocus={(e) => e.target.select()} />
+            <button onClick={() => copy('view', viewUrl)} className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center gap-1"><Copy size={12} />{copied === 'view' ? '已复制' : '复制'}</button>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-1">分享给观众/球员看积分和大屏。他们无法修改比分。</p>
+        </div>
+
+        {editUrl && (
+          <div className="mb-4">
+            <div className="text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5"><Share2 size={12} /> 管理链接 · Editor link</div>
+            <div className="flex gap-1.5">
+              <input readOnly value={editUrl} className="flex-1 px-2.5 py-2 rounded-lg border border-amber-200 bg-amber-50 text-xs font-mono truncate" onFocus={(e) => e.target.select()} />
+              <button onClick={() => copy('edit', editUrl)} className="px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium flex items-center gap-1"><Copy size={12} />{copied === 'edit' ? '已复制' : '复制'}</button>
+            </div>
+            <p className="text-[11px] text-rose-500 mt-1">⚠ 谨慎分享：拿到此链接的人可以修改所有比分。</p>
+          </div>
+        )}
+
+        <button onClick={onClose} className="w-full py-2.5 rounded-xl border border-slate-300 font-medium text-sm">关闭 Close</button>
+      </div>
+    </Modal>
   );
 }
 
