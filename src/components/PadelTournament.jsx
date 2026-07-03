@@ -654,8 +654,10 @@ function SetupView(p) {
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/50 to-transparent" />
         <div className="relative h-full flex flex-col justify-center px-6 sm:px-10 max-w-[70%]">
           <div className="text-[10px] sm:text-xs tracking-[0.3em] uppercase text-amber-300/90 font-semibold">Padel Tournament</div>
-          <h2 className="mt-2 text-2xl sm:text-4xl font-black text-white leading-tight drop-shadow">循环赛 · 淘汰赛 · Americano</h2>
-          <p className="mt-2 text-xs sm:text-sm text-slate-200/85 max-w-md">一站式生成赛程、记录比分、大屏直播、扫码分享。<span className="opacity-70">Schedule · Score · Big screen · Share.</span></p>
+          <h2 className="mt-2 text-2xl sm:text-4xl font-black text-white leading-tight drop-shadow">循环赛 · 淘汰赛 · 非固定搭档</h2>
+          <div className="mt-1 text-xs sm:text-sm tracking-[0.2em] uppercase text-amber-200/80 font-medium">Round Robin · Knockout · Americano</div>
+          <p className="mt-3 text-xs sm:text-sm text-slate-200/85 max-w-md">一站式生成赛程、记录比分、大屏直播、扫码分享。<br /><span className="opacity-70">Schedule · Score · Big screen · Share.</span></p>
+
         </div>
       </div>
 
