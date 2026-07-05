@@ -14,7 +14,7 @@ Free hosted version: [padel-matchup.philosophie.ai](https://padel-matchup.philos
 - **Big-screen mode** for fixtures, standings, leaderboards, and brackets at the venue.
 - **Local persistence** through `localStorage` before publishing to the cloud.
 - **Excel export** for fixtures, scores, standings, and knockout results.
-- **Trilingual UI** — bilingual Chinese/English by default at `/`, plus dedicated English-only (`/en`) and Spanish-only (`/es`) interfaces, switchable from the header language menu.
+- **Multilingual UI** — bilingual Chinese/English by default at `/`, plus dedicated single-language interfaces for English (`/en`), Spanish (`/es`), Italian (`/it`), French (`/fr`), Portuguese (`/pt`), Dutch (`/nl`), German (`/de`), Japanese (`/ja`), and Korean (`/ko`), switchable from the header language menu.
 
 ## Tech stack
 

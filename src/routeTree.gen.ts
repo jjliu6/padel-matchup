@@ -9,10 +9,47 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PtRouteImport } from './routes/pt'
+import { Route as NlRouteImport } from './routes/nl'
+import { Route as KoRouteImport } from './routes/ko'
+import { Route as JaRouteImport } from './routes/ja'
+import { Route as ItRouteImport } from './routes/it'
+import { Route as FrRouteImport } from './routes/fr'
 import { Route as EsRouteImport } from './routes/es'
 import { Route as EnRouteImport } from './routes/en'
+import { Route as DeRouteImport } from './routes/de'
 import { Route as IndexRouteImport } from './routes/index'
 
+const PtRoute = PtRouteImport.update({
+  id: '/pt',
+  path: '/pt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NlRoute = NlRouteImport.update({
+  id: '/nl',
+  path: '/nl',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KoRoute = KoRouteImport.update({
+  id: '/ko',
+  path: '/ko',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JaRoute = JaRouteImport.update({
+  id: '/ja',
+  path: '/ja',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ItRoute = ItRouteImport.update({
+  id: '/it',
+  path: '/it',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FrRoute = FrRouteImport.update({
+  id: '/fr',
+  path: '/fr',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EsRoute = EsRouteImport.update({
   id: '/es',
   path: '/es',
@@ -23,6 +60,11 @@ const EnRoute = EnRouteImport.update({
   path: '/en',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeRoute = DeRouteImport.update({
+  id: '/de',
+  path: '/de',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -31,36 +73,137 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/de': typeof DeRoute
   '/en': typeof EnRoute
   '/es': typeof EsRoute
+  '/fr': typeof FrRoute
+  '/it': typeof ItRoute
+  '/ja': typeof JaRoute
+  '/ko': typeof KoRoute
+  '/nl': typeof NlRoute
+  '/pt': typeof PtRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/de': typeof DeRoute
   '/en': typeof EnRoute
   '/es': typeof EsRoute
+  '/fr': typeof FrRoute
+  '/it': typeof ItRoute
+  '/ja': typeof JaRoute
+  '/ko': typeof KoRoute
+  '/nl': typeof NlRoute
+  '/pt': typeof PtRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/de': typeof DeRoute
   '/en': typeof EnRoute
   '/es': typeof EsRoute
+  '/fr': typeof FrRoute
+  '/it': typeof ItRoute
+  '/ja': typeof JaRoute
+  '/ko': typeof KoRoute
+  '/nl': typeof NlRoute
+  '/pt': typeof PtRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/en' | '/es'
+  fullPaths:
+    | '/'
+    | '/de'
+    | '/en'
+    | '/es'
+    | '/fr'
+    | '/it'
+    | '/ja'
+    | '/ko'
+    | '/nl'
+    | '/pt'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/en' | '/es'
-  id: '__root__' | '/' | '/en' | '/es'
+  to:
+    | '/'
+    | '/de'
+    | '/en'
+    | '/es'
+    | '/fr'
+    | '/it'
+    | '/ja'
+    | '/ko'
+    | '/nl'
+    | '/pt'
+  id:
+    | '__root__'
+    | '/'
+    | '/de'
+    | '/en'
+    | '/es'
+    | '/fr'
+    | '/it'
+    | '/ja'
+    | '/ko'
+    | '/nl'
+    | '/pt'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DeRoute: typeof DeRoute
   EnRoute: typeof EnRoute
   EsRoute: typeof EsRoute
+  FrRoute: typeof FrRoute
+  ItRoute: typeof ItRoute
+  JaRoute: typeof JaRoute
+  KoRoute: typeof KoRoute
+  NlRoute: typeof NlRoute
+  PtRoute: typeof PtRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/pt': {
+      id: '/pt'
+      path: '/pt'
+      fullPath: '/pt'
+      preLoaderRoute: typeof PtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nl': {
+      id: '/nl'
+      path: '/nl'
+      fullPath: '/nl'
+      preLoaderRoute: typeof NlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ko': {
+      id: '/ko'
+      path: '/ko'
+      fullPath: '/ko'
+      preLoaderRoute: typeof KoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ja': {
+      id: '/ja'
+      path: '/ja'
+      fullPath: '/ja'
+      preLoaderRoute: typeof JaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/it': {
+      id: '/it'
+      path: '/it'
+      fullPath: '/it'
+      preLoaderRoute: typeof ItRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fr': {
+      id: '/fr'
+      path: '/fr'
+      fullPath: '/fr'
+      preLoaderRoute: typeof FrRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/es': {
       id: '/es'
       path: '/es'
@@ -75,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/de': {
+      id: '/de'
+      path: '/de'
+      fullPath: '/de'
+      preLoaderRoute: typeof DeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -87,9 +237,26 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DeRoute: DeRoute,
   EnRoute: EnRoute,
   EsRoute: EsRoute,
+  FrRoute: FrRoute,
+  ItRoute: ItRoute,
+  JaRoute: JaRoute,
+  KoRoute: KoRoute,
+  NlRoute: NlRoute,
+  PtRoute: PtRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

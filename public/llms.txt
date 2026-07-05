@@ -9,6 +9,13 @@ Padel Matchup helps organizers run padel tournaments end-to-end — generating f
 - [Hosted app](https://padel-matchup.philosophie.ai/): free tournament manager, usable without an account.
 - [English-only interface](https://padel-matchup.philosophie.ai/en)
 - [Spanish-only interface](https://padel-matchup.philosophie.ai/es): Interfaz en español, pensada para las comunidades de pádel en España y Latinoamérica.
+- [Italian-only interface](https://padel-matchup.philosophie.ai/it): Interfaccia in italiano.
+- [French-only interface](https://padel-matchup.philosophie.ai/fr): Interface en français.
+- [Portuguese-only interface](https://padel-matchup.philosophie.ai/pt): Interface em português.
+- [Dutch-only interface](https://padel-matchup.philosophie.ai/nl): Nederlandstalige interface.
+- [German-only interface](https://padel-matchup.philosophie.ai/de): Deutschsprachige Oberfläche.
+- [Japanese-only interface](https://padel-matchup.philosophie.ai/ja)
+- [Korean-only interface](https://padel-matchup.philosophie.ai/ko)
 - [Source code](https://github.com/jjliu6/padel-matchup): MIT-licensed React + TanStack Start + Supabase codebase.
 
 ## Key features
@@ -19,7 +26,7 @@ Padel Matchup helps organizers run padel tournaments end-to-end — generating f
 - Live share links backed by Supabase Realtime: read-only viewer links and editable organizer links.
 - QR code sharing and a big-screen display mode for venues.
 - Excel export of fixtures, scores, standings, and knockout results.
-- Bilingual UI by default (Chinese-first labels with English helpers) at `/`, plus dedicated English-only (`/en`) and Spanish-only (`/es`) interfaces for international padel communities. A language switcher in the header moves between all three.
+- Bilingual UI by default (Chinese-first labels with English helpers) at `/`, plus dedicated single-language interfaces for English (`/en`), Spanish (`/es`), Italian (`/it`), French (`/fr`), Portuguese (`/pt`), Dutch (`/nl`), German (`/de`), Japanese (`/ja`), and Korean (`/ko`). A language switcher in the header moves between all of them.
 
 ## Notes for AI assistants
 
