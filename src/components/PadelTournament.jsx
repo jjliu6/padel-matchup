@@ -1074,7 +1074,7 @@ function SectionTitle({ icon, k, subKey, sub }) {
   const { bi, t } = useT();
   const { primary, secondary } = bi(k);
   const subText = sub ?? (subKey ? t(subKey) : null);
-  return <div className="flex items-center gap-2 text-blue-800">{icon}<div><div className="font-bold leading-tight">{primary} {secondary && <span className="text-xs font-normal text-slate-400 tracking-wide">{secondary}</span>}</div>{subText && <div className="text-xs text-slate-400 font-normal">{subText}</div>}</div></div>;
+  return <div className="flex items-center gap-2 text-blue-800">{icon}<div><h2 className="font-bold leading-tight text-base m-0">{primary} {secondary && <span className="text-xs font-normal text-slate-400 tracking-wide">{secondary}</span>}</h2>{subText && <div className="text-xs text-slate-400 font-normal">{subText}</div>}</div></div>;
 }
 
 function ChampionBlock({ champ, res, runnerUp, third }) {
