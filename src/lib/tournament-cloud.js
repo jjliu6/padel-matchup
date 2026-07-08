@@ -108,6 +108,16 @@ export async function getTournamentCount() {
   return Number(data);
 }
 
+// Fire-and-forget: records that a tournament was started locally, independent
+// of whether it's ever published/shared. Feeds the same counter above.
+export async function recordTournamentCreated() {
+  try {
+    await supabase.rpc("record_tournament_created");
+  } catch (e) {
+    console.error("[recordTournamentCreated] failed:", e);
+  }
+}
+
 export async function loadTournament(viewToken) {
   const { data, error } = await supabase.rpc("load_tournament", { _view_token: viewToken });
   if (error) throw error;
