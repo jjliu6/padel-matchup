@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ZhRouteImport } from './routes/zh'
 import { Route as PtRouteImport } from './routes/pt'
 import { Route as NlRouteImport } from './routes/nl'
 import { Route as KoRouteImport } from './routes/ko'
@@ -20,8 +21,15 @@ import { Route as EsRouteImport } from './routes/es'
 import { Route as EnRouteImport } from './routes/en'
 import { Route as DeRouteImport } from './routes/de'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ZhRouteImport } from './routes/zh'
+import { Route as GuideRoundRobinRouteImport } from './routes/guide.round-robin'
+import { Route as GuideKnockoutRouteImport } from './routes/guide.knockout'
+import { Route as GuideAmericanoRouteImport } from './routes/guide.americano'
 
+const ZhRoute = ZhRouteImport.update({
+  id: '/zh',
+  path: '/zh',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PtRoute = PtRouteImport.update({
   id: '/pt',
   path: '/pt',
@@ -77,9 +85,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ZhRoute = ZhRouteImport.update({
-  id: '/zh',
-  path: '/zh',
+const GuideRoundRobinRoute = GuideRoundRobinRouteImport.update({
+  id: '/guide/round-robin',
+  path: '/guide/round-robin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideKnockoutRoute = GuideKnockoutRouteImport.update({
+  id: '/guide/knockout',
+  path: '/guide/knockout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideAmericanoRoute = GuideAmericanoRouteImport.update({
+  id: '/guide/americano',
+  path: '/guide/americano',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -96,6 +114,9 @@ export interface FileRoutesByFullPath {
   '/nl': typeof NlRoute
   '/pt': typeof PtRoute
   '/zh': typeof ZhRoute
+  '/guide/americano': typeof GuideAmericanoRoute
+  '/guide/knockout': typeof GuideKnockoutRoute
+  '/guide/round-robin': typeof GuideRoundRobinRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +131,9 @@ export interface FileRoutesByTo {
   '/nl': typeof NlRoute
   '/pt': typeof PtRoute
   '/zh': typeof ZhRoute
+  '/guide/americano': typeof GuideAmericanoRoute
+  '/guide/knockout': typeof GuideKnockoutRoute
+  '/guide/round-robin': typeof GuideRoundRobinRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +149,9 @@ export interface FileRoutesById {
   '/nl': typeof NlRoute
   '/pt': typeof PtRoute
   '/zh': typeof ZhRoute
+  '/guide/americano': typeof GuideAmericanoRoute
+  '/guide/knockout': typeof GuideKnockoutRoute
+  '/guide/round-robin': typeof GuideRoundRobinRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +168,9 @@ export interface FileRouteTypes {
     | '/nl'
     | '/pt'
     | '/zh'
+    | '/guide/americano'
+    | '/guide/knockout'
+    | '/guide/round-robin'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,6 +185,9 @@ export interface FileRouteTypes {
     | '/nl'
     | '/pt'
     | '/zh'
+    | '/guide/americano'
+    | '/guide/knockout'
+    | '/guide/round-robin'
   id:
     | '__root__'
     | '/'
@@ -169,6 +202,9 @@ export interface FileRouteTypes {
     | '/nl'
     | '/pt'
     | '/zh'
+    | '/guide/americano'
+    | '/guide/knockout'
+    | '/guide/round-robin'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,10 +220,20 @@ export interface RootRouteChildren {
   NlRoute: typeof NlRoute
   PtRoute: typeof PtRoute
   ZhRoute: typeof ZhRoute
+  GuideAmericanoRoute: typeof GuideAmericanoRoute
+  GuideKnockoutRoute: typeof GuideKnockoutRoute
+  GuideRoundRobinRoute: typeof GuideRoundRobinRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/zh': {
+      id: '/zh'
+      path: '/zh'
+      fullPath: '/zh'
+      preLoaderRoute: typeof ZhRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pt': {
       id: '/pt'
       path: '/pt'
@@ -265,11 +311,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/zh': {
-      id: '/zh'
-      path: '/zh'
-      fullPath: '/zh'
-      preLoaderRoute: typeof ZhRouteImport
+    '/guide/round-robin': {
+      id: '/guide/round-robin'
+      path: '/guide/round-robin'
+      fullPath: '/guide/round-robin'
+      preLoaderRoute: typeof GuideRoundRobinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/knockout': {
+      id: '/guide/knockout'
+      path: '/guide/knockout'
+      fullPath: '/guide/knockout'
+      preLoaderRoute: typeof GuideKnockoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/americano': {
+      id: '/guide/americano'
+      path: '/guide/americano'
+      fullPath: '/guide/americano'
+      preLoaderRoute: typeof GuideAmericanoRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -288,17 +348,10 @@ const rootRouteChildren: RootRouteChildren = {
   NlRoute: NlRoute,
   PtRoute: PtRoute,
   ZhRoute: ZhRoute,
+  GuideAmericanoRoute: GuideAmericanoRoute,
+  GuideKnockoutRoute: GuideKnockoutRoute,
+  GuideRoundRobinRoute: GuideRoundRobinRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
