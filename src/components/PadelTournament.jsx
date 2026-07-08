@@ -363,6 +363,9 @@ function PadelTournamentInner() {
       updateUrlTokens({ view: tokens.view_token, edit: tokens.edit_token });
       setSyncStatus('saved');
       setShowShare(true);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('tournament:created'));
+      }
     } catch (e) {
       setSyncStatus('error');
       alert(`${t('alert.publishFailed')}: ${e?.message || e}`);
@@ -877,10 +880,26 @@ function TournamentCountBadge() {
 
   useEffect(() => {
     let alive = true;
-    getTournamentCount()
-      .then((n) => { if (alive && Number.isFinite(n)) setCount(n); })
-      .catch((e) => { console.error('[TournamentCountBadge] get_tournament_count failed:', e); });
-    return () => { alive = false; };
+    const fetchCount = () => {
+      getTournamentCount()
+        .then((n) => { if (alive && Number.isFinite(n)) setCount(n); })
+        .catch((e) => { console.error('[TournamentCountBadge] get_tournament_count failed:', e); });
+    };
+    fetchCount();
+    const onCreated = () => {
+      // Optimistic bump so the counter reflects the just-created tournament
+      // immediately, then reconcile with the server.
+      setCount((c) => (typeof c === 'number' ? c + 1 : c));
+      setTimeout(fetchCount, 800);
+    };
+    const onFocus = () => fetchCount();
+    window.addEventListener('tournament:created', onCreated);
+    window.addEventListener('focus', onFocus);
+    return () => {
+      alive = false;
+      window.removeEventListener('tournament:created', onCreated);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   if (count === null) return null;
