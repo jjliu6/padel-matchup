@@ -1339,9 +1339,9 @@ function BigScreen({ title, mode, groups, bracket, results, amSchedule, amResult
               )}
               {view === 'round' && (
                 <div className="flex items-center gap-3 ml-auto">
-                  <button onClick={() => setRi(Math.max(0, rIdx - 1))} disabled={rIdx === 0} className="bg-white/10 hover:bg-white/20 disabled:opacity-30 rounded-full p-3"><ChevronLeft size={26} /></button>
+                  <button onClick={() => setRi(Math.max(0, rIdx - 1))} disabled={rIdx === 0} aria-label={t('big.prevRound') || 'Previous round'} className="bg-white/10 hover:bg-white/20 disabled:opacity-30 rounded-full p-3"><ChevronLeft size={26} /></button>
                   <RoundOfLabel n={rIdx + 1} total={roundsCount} />
-                  <button onClick={() => setRi(Math.min(roundsCount - 1, rIdx + 1))} disabled={rIdx >= roundsCount - 1} className="bg-white/10 hover:bg-white/20 disabled:opacity-30 rounded-full p-3"><ChevronRight size={26} /></button>
+                  <button onClick={() => setRi(Math.min(roundsCount - 1, rIdx + 1))} disabled={rIdx >= roundsCount - 1} aria-label={t('big.nextRound') || 'Next round'} className="bg-white/10 hover:bg-white/20 disabled:opacity-30 rounded-full p-3"><ChevronRight size={26} /></button>
                 </div>
               )}
             </div>
