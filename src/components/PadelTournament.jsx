@@ -839,10 +839,8 @@ function SetupView(p) {
         </p>
         <div className="flex items-center gap-3">
           <button onClick={() => stepRounds(-1)} disabled={!canEdit} aria-label="Decrease rounds" className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center disabled:opacity-40"><Minus size={16} /></button>
-          <div className="w-10 text-center font-semibold text-blue-800 tabular-nums">{numRounds}</div>
-          <button onClick={() => stepRounds(1)} disabled={!canEdit} aria-label="Increase rounds" className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center disabled:opacity-40"><Plus size={16} /></button>
           <div className="text-center"><div className="text-2xl font-bold text-blue-800 tabular-nums">{rounds}</div><div className="text-xs text-slate-400">{t('setup.roundsOf', { max: maxRounds })}</div></div>
-          <button onClick={() => stepRounds(1)} disabled={!canEdit} className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center disabled:opacity-40"><Plus size={16} /></button>
+          <button onClick={() => stepRounds(1)} disabled={!canEdit} aria-label="Increase rounds" className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center disabled:opacity-40"><Plus size={16} /></button>
           {rounds === maxRounds && !isAm && <span className="text-xs text-emerald-600 ml-1">{t('setup.roundsFull')}</span>}
         </div>
       </div>
