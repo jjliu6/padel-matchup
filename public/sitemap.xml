@@ -9,6 +9,13 @@
     <xhtml:link rel="alternate" hreflang="zh" href="https://padel-matchup.philosophie.ai/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://padel-matchup.philosophie.ai/en" />
     <xhtml:link rel="alternate" hreflang="es" href="https://padel-matchup.philosophie.ai/es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://padel-matchup.philosophie.ai/it" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://padel-matchup.philosophie.ai/fr" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://padel-matchup.philosophie.ai/pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://padel-matchup.philosophie.ai/nl" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://padel-matchup.philosophie.ai/de" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://padel-matchup.philosophie.ai/ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://padel-matchup.philosophie.ai/ko" />
   </url>
   <url>
     <loc>https://padel-matchup.philosophie.ai/en</loc>
@@ -18,6 +25,13 @@
     <xhtml:link rel="alternate" hreflang="zh" href="https://padel-matchup.philosophie.ai/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://padel-matchup.philosophie.ai/en" />
     <xhtml:link rel="alternate" hreflang="es" href="https://padel-matchup.philosophie.ai/es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://padel-matchup.philosophie.ai/it" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://padel-matchup.philosophie.ai/fr" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://padel-matchup.philosophie.ai/pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://padel-matchup.philosophie.ai/nl" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://padel-matchup.philosophie.ai/de" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://padel-matchup.philosophie.ai/ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://padel-matchup.philosophie.ai/ko" />
   </url>
   <url>
     <loc>https://padel-matchup.philosophie.ai/es</loc>
@@ -27,6 +41,125 @@
     <xhtml:link rel="alternate" hreflang="zh" href="https://padel-matchup.philosophie.ai/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://padel-matchup.philosophie.ai/en" />
     <xhtml:link rel="alternate" hreflang="es" href="https://padel-matchup.philosophie.ai/es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://padel-matchup.philosophie.ai/it" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://padel-matchup.philosophie.ai/fr" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://padel-matchup.philosophie.ai/pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://padel-matchup.philosophie.ai/nl" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://padel-matchup.philosophie.ai/de" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://padel-matchup.philosophie.ai/ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://padel-matchup.philosophie.ai/ko" />
+  </url>
+  <url>
+    <loc>https://padel-matchup.philosophie.ai/it</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://padel-matchup.philosophie.ai/" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://padel-matchup.philosophie.ai/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://padel-matchup.philosophie.ai/en" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://padel-matchup.philosophie.ai/es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://padel-matchup.philosophie.ai/it" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://padel-matchup.philosophie.ai/fr" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://padel-matchup.philosophie.ai/pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://padel-matchup.philosophie.ai/nl" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://padel-matchup.philosophie.ai/de" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://padel-matchup.philosophie.ai/ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://padel-matchup.philosophie.ai/ko" />
+  </url>
+  <url>
+    <loc>https://padel-matchup.philosophie.ai/fr</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://padel-matchup.philosophie.ai/" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://padel-matchup.philosophie.ai/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://padel-matchup.philosophie.ai/en" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://padel-matchup.philosophie.ai/es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://padel-matchup.philosophie.ai/it" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://padel-matchup.philosophie.ai/fr" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://padel-matchup.philosophie.ai/pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://padel-matchup.philosophie.ai/nl" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://padel-matchup.philosophie.ai/de" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://padel-matchup.philosophie.ai/ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://padel-matchup.philosophie.ai/ko" />
+  </url>
+  <url>
+    <loc>https://padel-matchup.philosophie.ai/pt</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://padel-matchup.philosophie.ai/" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://padel-matchup.philosophie.ai/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://padel-matchup.philosophie.ai/en" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://padel-matchup.philosophie.ai/es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://padel-matchup.philosophie.ai/it" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://padel-matchup.philosophie.ai/fr" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://padel-matchup.philosophie.ai/pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://padel-matchup.philosophie.ai/nl" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://padel-matchup.philosophie.ai/de" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://padel-matchup.philosophie.ai/ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://padel-matchup.philosophie.ai/ko" />
+  </url>
+  <url>
+    <loc>https://padel-matchup.philosophie.ai/nl</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://padel-matchup.philosophie.ai/" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://padel-matchup.philosophie.ai/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://padel-matchup.philosophie.ai/en" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://padel-matchup.philosophie.ai/es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://padel-matchup.philosophie.ai/it" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://padel-matchup.philosophie.ai/fr" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://padel-matchup.philosophie.ai/pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://padel-matchup.philosophie.ai/nl" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://padel-matchup.philosophie.ai/de" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://padel-matchup.philosophie.ai/ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://padel-matchup.philosophie.ai/ko" />
+  </url>
+  <url>
+    <loc>https://padel-matchup.philosophie.ai/de</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://padel-matchup.philosophie.ai/" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://padel-matchup.philosophie.ai/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://padel-matchup.philosophie.ai/en" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://padel-matchup.philosophie.ai/es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://padel-matchup.philosophie.ai/it" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://padel-matchup.philosophie.ai/fr" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://padel-matchup.philosophie.ai/pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://padel-matchup.philosophie.ai/nl" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://padel-matchup.philosophie.ai/de" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://padel-matchup.philosophie.ai/ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://padel-matchup.philosophie.ai/ko" />
+  </url>
+  <url>
+    <loc>https://padel-matchup.philosophie.ai/ja</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://padel-matchup.philosophie.ai/" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://padel-matchup.philosophie.ai/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://padel-matchup.philosophie.ai/en" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://padel-matchup.philosophie.ai/es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://padel-matchup.philosophie.ai/it" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://padel-matchup.philosophie.ai/fr" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://padel-matchup.philosophie.ai/pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://padel-matchup.philosophie.ai/nl" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://padel-matchup.philosophie.ai/de" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://padel-matchup.philosophie.ai/ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://padel-matchup.philosophie.ai/ko" />
+  </url>
+  <url>
+    <loc>https://padel-matchup.philosophie.ai/ko</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://padel-matchup.philosophie.ai/" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://padel-matchup.philosophie.ai/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://padel-matchup.philosophie.ai/en" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://padel-matchup.philosophie.ai/es" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://padel-matchup.philosophie.ai/it" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://padel-matchup.philosophie.ai/fr" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://padel-matchup.philosophie.ai/pt" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://padel-matchup.philosophie.ai/nl" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://padel-matchup.philosophie.ai/de" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://padel-matchup.philosophie.ai/ja" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://padel-matchup.philosophie.ai/ko" />
   </url>
   <url>
     <loc>https://padel-matchup.philosophie.ai/faq</loc>
