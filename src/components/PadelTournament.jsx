@@ -824,7 +824,7 @@ function SetupView(p) {
                   {['A', 'B'].map((g) => <button key={g} onClick={() => setGroup(i, g)} disabled={!canEdit} className={`px-2.5 py-1.5 disabled:opacity-60 ${groupOf[i] === g ? (g === 'A' ? 'bg-sky-600 text-white' : 'bg-orange-500 text-white') : 'bg-white text-slate-500'}`}>{g}</button>)}
                 </div>
               )}
-              <button onClick={() => removeTeam(i)} disabled={!canEdit || teams.length <= 2} className="w-8 h-8 rounded-full bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 disabled:opacity-30 flex items-center justify-center"><Minus size={16} /></button>
+              <button onClick={() => removeTeam(i)} disabled={!canEdit || teams.length <= 2} aria-label={`Remove ${teams[i] || 'team'}`} className="w-8 h-8 rounded-full bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 disabled:opacity-30 flex items-center justify-center"><Minus size={16} /></button>
             </div>
           ))}
         </div>
