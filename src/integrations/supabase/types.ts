@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      tournament_creations: {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+        }
+        Update: {
+          created_at?: string
+          id?: never
+        }
+        Relationships: []
+      }
       tournaments: {
         Row: {
           created_at: string
@@ -62,6 +77,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      record_tournament_created: { Args: never; Returns: undefined }
       save_tournament: {
         Args: { _edit_token: string; _state: Json }
         Returns: {
