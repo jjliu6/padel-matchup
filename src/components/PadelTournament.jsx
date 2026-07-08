@@ -4,12 +4,18 @@ import { createTournament, loadTournament, saveTournament, getUrlTokens, updateU
 import { LangProvider, useT, LANGS } from '@/lib/i18n.jsx';
 import QRCode from 'qrcode';
 
-function loadPersisted() {
+// Bilingual (the original default route) keeps the unscoped key so existing
+// drafts aren't lost; /en and /es get their own keys so switching language
+// never shows a stale draft typed in a different language.
+const LS_KEY = 'padel-tournament-state-v1';
+function lsKey(lang) {
+  return lang === 'bilingual' ? LS_KEY : `${LS_KEY}:${lang}`;
+}
+function loadPersisted(lang) {
   if (typeof window === 'undefined') return {};
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}') || {}; }
+  try { return JSON.parse(localStorage.getItem(lsKey(lang)) || '{}') || {}; }
   catch { return {}; }
 }
-const LS_KEY = 'padel-tournament-state-v1';
 import * as XLSX from 'xlsx';
 import {
   Trophy, Users, Home, Crown, Plus, Minus, Coffee, Swords, Flag, Check, Medal,
@@ -203,7 +209,7 @@ export default function PadelTournament({ initialLang = 'bilingual' }) {
 function PadelTournamentInner() {
   const { lang, t, bi, d } = useT();
   const persistedRef = useRef(null);
-  if (persistedRef.current === null) persistedRef.current = loadPersisted();
+  if (persistedRef.current === null) persistedRef.current = loadPersisted(lang);
   const pget = (k, fallback) => (k in persistedRef.current ? persistedRef.current[k] : fallback);
 
   useEffect(() => {
@@ -303,9 +309,9 @@ function PadelTournamentInner() {
     if (readOnly) return;
     if (remoteLoading) return;
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify(buildState()));
+      localStorage.setItem(lsKey(lang), JSON.stringify(buildState()));
     } catch { /* quota / private mode */ }
-  }, [readOnly, remoteLoading, stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
+  }, [readOnly, remoteLoading, lang, stage, title, teams, groupOf, mode, advancePerGroup, numRounds, defaultSets,
       schedules, results, ko, activeGroup, activeRound, amSchedule, amResults, amRound]);
 
   // Debounced cloud auto-save when we hold the edit token
@@ -466,7 +472,7 @@ function PadelTournamentInner() {
   const [confirmNew, setConfirmNew] = useState(false);
   const startNewSession = () => {
     if (!canEdit && readOnly) return;
-    try { localStorage.removeItem(LS_KEY); } catch {}
+    try { localStorage.removeItem(lsKey(lang)); } catch {}
     updateUrlTokens({ view: null, edit: null });
     setCloudTokens(null);
     setReadOnly(false);
