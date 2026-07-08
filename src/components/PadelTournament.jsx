@@ -1188,7 +1188,7 @@ function StandingsTable({ k, standings, qualifyCount, accent }) {
   const bar = accent === 'orange' ? 'text-orange-600' : accent === 'sky' ? 'text-sky-600' : 'text-blue-700';
   return (
     <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm shadow-slate-300/40 overflow-hidden">
-      <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2"><Medal size={17} className={bar} /><Bi k={k} className="font-semibold" /></div>
+      <h2 className="px-4 py-3 border-b border-slate-100 flex items-center gap-2 text-sm m-0"><Medal size={17} className={bar} /><Bi k={k} className="font-semibold" /></h2>
       <table className="w-full text-sm">
         <thead><tr className="text-slate-400 text-xs"><Th k="th.rank" noSecondary /><Th k="th.team" left /><Th k="th.win" /><Th k="th.loss" /><Th k="th.diff" /><Th k="th.pts" pr /></tr></thead>
         <tbody>
