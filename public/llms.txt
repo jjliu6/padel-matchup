@@ -9,6 +9,7 @@ Padel Matchup helps organizers run padel tournaments end-to-end — generating f
 - [Hosted app](https://padel-matchup.philosophie.ai/): free tournament manager, usable without an account.
 - [English-only interface](https://padel-matchup.philosophie.ai/en)
 - [Spanish-only interface](https://padel-matchup.philosophie.ai/es): Interfaz en español, pensada para las comunidades de pádel en España y Latinoamérica.
+- [FAQ](https://padel-matchup.philosophie.ai/faq): Answers on formats (round robin vs Americano vs knockout), scoring, share links, and Excel export.
 - [Source code](https://github.com/jjliu6/padel-matchup): MIT-licensed React + TanStack Start + Supabase codebase.
 
 ## Key features
