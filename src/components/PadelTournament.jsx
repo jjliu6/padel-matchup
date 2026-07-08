@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { createTournament, loadTournament, saveTournament, getUrlTokens, updateUrlTokens, buildShareUrls, subscribeTournament, broadcastTournament, getTournamentCount } from '@/lib/tournament-cloud';
+import { createTournament, loadTournament, saveTournament, getUrlTokens, updateUrlTokens, buildShareUrls, subscribeTournament, broadcastTournament, getTournamentCount, recordTournamentCreated } from '@/lib/tournament-cloud';
 import { LangProvider, useT, LANGS } from '@/lib/i18n.jsx';
 import QRCode from 'qrcode';
 
@@ -363,9 +363,6 @@ function PadelTournamentInner() {
       updateUrlTokens({ view: tokens.view_token, edit: tokens.edit_token });
       setSyncStatus('saved');
       setShowShare(true);
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('tournament:created'));
-      }
     } catch (e) {
       setSyncStatus('error');
       alert(`${t('alert.publishFailed')}: ${e?.message || e}`);
@@ -467,6 +464,10 @@ function PadelTournamentInner() {
       setResults({}); setKo({}); setActiveGroup('A'); setActiveRound(0); setStage('group');
     }
     setResumeStage(null);
+    recordTournamentCreated();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('tournament:created'));
+    }
   };
   const start = () => { if (!canEdit) return; return hasProgress ? setConfirmRegen(true) : doGenerate(); };
   const goHome = () => { setResumeStage(stage); setStage('setup'); };
