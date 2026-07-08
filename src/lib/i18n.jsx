@@ -502,6 +502,11 @@ const DICT = {
     ja: "総当たり戦・決勝トーナメント・アメリカーノ",
     ko: "라운드로빈 · 토너먼트 · 아메리카노",
   },
+  "stats.tournamentCount": {
+    zh: "已创建 {count} 场比赛",
+    en: "{count} tournaments created",
+    es: "{count} torneos creados",
+  },
   "hero.sub": {
     zh: "Round Robin · Knockout · Americano",
     en: "Round Robin · Knockout · Americano",

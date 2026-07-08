@@ -54,6 +54,10 @@ export type Database = {
           view_token: string
         }[]
       }
+      get_tournament_count: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       load_tournament: {
         Args: { _view_token: string }
         Returns: {

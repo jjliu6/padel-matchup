@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { createTournament, loadTournament, saveTournament, getUrlTokens, updateUrlTokens, buildShareUrls, subscribeTournament, broadcastTournament } from '@/lib/tournament-cloud';
+import { createTournament, loadTournament, saveTournament, getUrlTokens, updateUrlTokens, buildShareUrls, subscribeTournament, broadcastTournament, getTournamentCount } from '@/lib/tournament-cloud';
 import { LangProvider, useT, LANGS } from '@/lib/i18n.jsx';
 import QRCode from 'qrcode';
 
@@ -770,6 +770,7 @@ function SetupView(p) {
           <div className="mt-1 text-[11px] sm:text-sm tracking-[0.2em] uppercase text-amber-200/80 font-medium">{t('hero.sub')}</div>
           <p className="mt-3 text-xs sm:text-sm text-slate-200/85 sm:max-w-md">{t('hero.body')}</p>
         </div>
+        <TournamentCountBadge />
       </div>
 
       {resumeStage && (
@@ -857,6 +858,37 @@ function SetupView(p) {
       <button onClick={onStart} disabled={!canEdit || !canStart} className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-40 disabled:from-slate-400 disabled:to-slate-400 text-white font-semibold rounded-xl py-3.5 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 transition-all">
         {bi('setup.start').primary} {lang === 'bilingual' && <span className="text-xs font-normal opacity-80">{bi('setup.start').secondary}</span>} <ArrowRight size={18} />
       </button>
+    </div>
+  );
+}
+
+// Social-proof badge: total tournaments ever created via the app. Fetched
+// once per page load; stays hidden until it resolves so there's no
+// zero-flash before the real number arrives.
+function TournamentCountBadge() {
+  const { lang, bi } = useT();
+  const [count, setCount] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    getTournamentCount()
+      .then((n) => { if (alive && Number.isFinite(n)) setCount(n); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
+  if (count === null) return null;
+
+  const locale = lang === 'en' ? 'en-US' : lang === 'es' ? 'es-ES' : 'zh-CN';
+  const label = bi('stats.tournamentCount', { count: count.toLocaleString(locale) });
+
+  return (
+    <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 flex items-center gap-1.5 bg-slate-950/60 backdrop-blur-sm border border-white/10 rounded-full pl-2 pr-3 py-1.5 text-white shadow-sm">
+      <Trophy size={14} className="text-amber-300 shrink-0" />
+      <span className="text-[11px] sm:text-xs font-medium leading-none">
+        {label.primary}
+        {lang === 'bilingual' && <span className="ml-1 opacity-70 font-normal">{label.secondary}</span>}
+      </span>
     </div>
   );
 }

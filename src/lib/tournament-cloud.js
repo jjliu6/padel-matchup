@@ -101,6 +101,13 @@ export async function createTournament(state) {
   return row; // { id, view_token, edit_token }
 }
 
+// Total tournaments ever created via the app — used for the social-proof counter.
+export async function getTournamentCount() {
+  const { data, error } = await supabase.rpc("get_tournament_count");
+  if (error) throw error;
+  return Number(data);
+}
+
 export async function loadTournament(viewToken) {
   const { data, error } = await supabase.rpc("load_tournament", { _view_token: viewToken });
   if (error) throw error;
