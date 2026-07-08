@@ -14,7 +14,7 @@ Free hosted version: [padel-matchup.philosophie.ai](https://padel-matchup.philos
 - **Big-screen mode** for fixtures, standings, leaderboards, and brackets at the venue.
 - **Local persistence** through `localStorage` before publishing to the cloud.
 - **Excel export** for fixtures, scores, standings, and knockout results.
-- **Multilingual UI** — bilingual Chinese/English by default at `/`, plus dedicated single-language interfaces for English (`/en`), Spanish (`/es`), Italian (`/it`), French (`/fr`), Portuguese (`/pt`), Dutch (`/nl`), German (`/de`), Japanese (`/ja`), and Korean (`/ko`), switchable from the header language menu.
+- **Multilingual UI** — English by default at `/`, a bilingual Chinese/English interface at `/zh`, and dedicated single-language interfaces for Spanish (`/es`), Italian (`/it`), French (`/fr`), Portuguese (`/pt`), Dutch (`/nl`), German (`/de`), Japanese (`/ja`), and Korean (`/ko`), switchable from the header language menu.
 
 ## Tech stack
 
@@ -31,7 +31,7 @@ Free hosted version: [padel-matchup.philosophie.ai](https://padel-matchup.philos
 
 Padel Matchup 是一个面向板式网球赛事组织者的开源工具，支持固定搭档循环赛、双小组出线、Americano 非固定搭档、淘汰赛、大屏展示、扫码分享、实时同步和 Excel 导出。
 
-免费在线版本：[https://padel-matchup.philosophie.ai/](https://padel-matchup.philosophie.ai/)
+免费在线版本（中英双语界面）：[https://padel-matchup.philosophie.ai/zh](https://padel-matchup.philosophie.ai/zh)
 
 如果你准备把项目正式开源，建议优先确认三件事：
 

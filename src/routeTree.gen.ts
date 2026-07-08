@@ -20,6 +20,7 @@ import { Route as EsRouteImport } from './routes/es'
 import { Route as EnRouteImport } from './routes/en'
 import { Route as DeRouteImport } from './routes/de'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ZhRouteImport } from './routes/zh'
 
 const PtRoute = PtRouteImport.update({
   id: '/pt',
@@ -76,6 +77,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ZhRoute = ZhRouteImport.update({
+  id: '/zh',
+  path: '/zh',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/ko': typeof KoRoute
   '/nl': typeof NlRoute
   '/pt': typeof PtRoute
+  '/zh': typeof ZhRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/ko': typeof KoRoute
   '/nl': typeof NlRoute
   '/pt': typeof PtRoute
+  '/zh': typeof ZhRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/ko': typeof KoRoute
   '/nl': typeof NlRoute
   '/pt': typeof PtRoute
+  '/zh': typeof ZhRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/ko'
     | '/nl'
     | '/pt'
+    | '/zh'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/ko'
     | '/nl'
     | '/pt'
+    | '/zh'
   id:
     | '__root__'
     | '/'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/ko'
     | '/nl'
     | '/pt'
+    | '/zh'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,6 +183,7 @@ export interface RootRouteChildren {
   KoRoute: typeof KoRoute
   NlRoute: typeof NlRoute
   PtRoute: typeof PtRoute
+  ZhRoute: typeof ZhRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -252,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/zh': {
+      id: '/zh'
+      path: '/zh'
+      fullPath: '/zh'
+      preLoaderRoute: typeof ZhRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -267,6 +287,7 @@ const rootRouteChildren: RootRouteChildren = {
   KoRoute: KoRoute,
   NlRoute: NlRoute,
   PtRoute: PtRoute,
+  ZhRoute: ZhRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
