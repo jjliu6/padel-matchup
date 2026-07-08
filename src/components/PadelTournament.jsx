@@ -363,6 +363,9 @@ function PadelTournamentInner() {
       updateUrlTokens({ view: tokens.view_token, edit: tokens.edit_token });
       setSyncStatus('saved');
       setShowShare(true);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('tournament:created'));
+      }
     } catch (e) {
       setSyncStatus('error');
       alert(`${t('alert.publishFailed')}: ${e?.message || e}`);
