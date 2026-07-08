@@ -28,4 +28,9 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://padel-matchup.philosophie.ai/en" />
     <xhtml:link rel="alternate" hreflang="es" href="https://padel-matchup.philosophie.ai/es" />
   </url>
+  <url>
+    <loc>https://padel-matchup.philosophie.ai/faq</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>
