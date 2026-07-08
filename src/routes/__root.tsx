@@ -72,6 +72,23 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
+const ORG_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Padel Matchup",
+  url: "https://padel-matchup.philosophie.ai/",
+  logo: "https://padel-matchup.philosophie.ai/favicon.png",
+  sameAs: ["https://philosophie.ai/", "https://github.com/jjliu6/padel-matchup"],
+};
+
+const WEBSITE_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Padel Matchup",
+  url: "https://padel-matchup.philosophie.ai/",
+  inLanguage: ["en", "zh", "es", "it", "fr", "pt", "nl", "de", "ja", "ko"],
+};
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
@@ -89,11 +106,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
+    ],
+    scripts: [
+      { type: "application/ld+json", children: JSON.stringify(ORG_SCHEMA) },
+      { type: "application/ld+json", children: JSON.stringify(WEBSITE_SCHEMA) },
     ],
   }),
   shellComponent: RootShell,

@@ -17,6 +17,9 @@ Padel Matchup helps organizers run padel tournaments end-to-end — generating f
 - [Japanese-only interface](https://padel-matchup.philosophie.ai/ja)
 - [Korean-only interface](https://padel-matchup.philosophie.ai/ko)
 - [FAQ](https://padel-matchup.philosophie.ai/faq): Answers on formats (round robin vs Americano vs knockout), scoring, share links, and Excel export.
+- [Round robin guide](https://padel-matchup.philosophie.ai/guide/round-robin): What a round robin padel tournament is, when to use it, match count formulas, scoring and tiebreakers.
+- [Americano guide](https://padel-matchup.philosophie.ai/guide/americano): What an Americano padel tournament is, rotation rules, individual leaderboard scoring, and how it differs from round robin.
+- [Knockout guide](https://padel-matchup.philosophie.ai/guide/knockout): How the knockout bracket works after a two-group round robin — crossover seeding (A1 vs B2, B1 vs A2), semifinals, third-place, and final.
 - [Source code](https://github.com/jjliu6/padel-matchup): MIT-licensed React + TanStack Start + Supabase codebase.
 
 ## Key features
