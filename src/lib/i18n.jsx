@@ -506,6 +506,13 @@ const DICT = {
     zh: "已创建 {count} 场比赛",
     en: "{count} tournaments created",
     es: "{count} torneos creados",
+    it: "{count} tornei creati",
+    fr: "{count} tournois créés",
+    pt: "{count} torneios criados",
+    nl: "{count} toernooien aangemaakt",
+    de: "{count} Turniere erstellt",
+    ja: "{count} 件のトーナメントが作成されました",
+    ko: "{count}개 토너먼트 생성됨",
   },
   "hero.sub": {
     zh: "Round Robin · Knockout · Americano",

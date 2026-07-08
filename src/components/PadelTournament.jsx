@@ -879,7 +879,7 @@ function TournamentCountBadge() {
     let alive = true;
     getTournamentCount()
       .then((n) => { if (alive && Number.isFinite(n)) setCount(n); })
-      .catch(() => {});
+      .catch((e) => { console.error('[TournamentCountBadge] get_tournament_count failed:', e); });
     return () => { alive = false; };
   }, []);
 
