@@ -15,6 +15,7 @@ import { Route as KoRouteImport } from './routes/ko'
 import { Route as JaRouteImport } from './routes/ja'
 import { Route as ItRouteImport } from './routes/it'
 import { Route as FrRouteImport } from './routes/fr'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EsRouteImport } from './routes/es'
 import { Route as EnRouteImport } from './routes/en'
 import { Route as DeRouteImport } from './routes/de'
@@ -50,6 +51,11 @@ const FrRoute = FrRouteImport.update({
   path: '/fr',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EsRoute = EsRouteImport.update({
   id: '/es',
   path: '/es',
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/de': typeof DeRoute
   '/en': typeof EnRoute
   '/es': typeof EsRoute
+  '/faq': typeof FaqRoute
   '/fr': typeof FrRoute
   '/it': typeof ItRoute
   '/ja': typeof JaRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/de': typeof DeRoute
   '/en': typeof EnRoute
   '/es': typeof EsRoute
+  '/faq': typeof FaqRoute
   '/fr': typeof FrRoute
   '/it': typeof ItRoute
   '/ja': typeof JaRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/de': typeof DeRoute
   '/en': typeof EnRoute
   '/es': typeof EsRoute
+  '/faq': typeof FaqRoute
   '/fr': typeof FrRoute
   '/it': typeof ItRoute
   '/ja': typeof JaRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/de'
     | '/en'
     | '/es'
+    | '/faq'
     | '/fr'
     | '/it'
     | '/ja'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/de'
     | '/en'
     | '/es'
+    | '/faq'
     | '/fr'
     | '/it'
     | '/ja'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/de'
     | '/en'
     | '/es'
+    | '/faq'
     | '/fr'
     | '/it'
     | '/ja'
@@ -152,6 +164,7 @@ export interface RootRouteChildren {
   DeRoute: typeof DeRoute
   EnRoute: typeof EnRoute
   EsRoute: typeof EsRoute
+  FaqRoute: typeof FaqRoute
   FrRoute: typeof FrRoute
   ItRoute: typeof ItRoute
   JaRoute: typeof JaRoute
@@ -204,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FrRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/es': {
       id: '/es'
       path: '/es'
@@ -240,6 +260,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeRoute: DeRoute,
   EnRoute: EnRoute,
   EsRoute: EsRoute,
+  FaqRoute: FaqRoute,
   FrRoute: FrRoute,
   ItRoute: ItRoute,
   JaRoute: JaRoute,

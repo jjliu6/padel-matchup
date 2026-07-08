@@ -824,7 +824,7 @@ function SetupView(p) {
                   {['A', 'B'].map((g) => <button key={g} onClick={() => setGroup(i, g)} disabled={!canEdit} className={`px-2.5 py-1.5 disabled:opacity-60 ${groupOf[i] === g ? (g === 'A' ? 'bg-sky-600 text-white' : 'bg-orange-500 text-white') : 'bg-white text-slate-500'}`}>{g}</button>)}
                 </div>
               )}
-              <button onClick={() => removeTeam(i)} disabled={!canEdit || teams.length <= 2} className="w-8 h-8 rounded-full bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 disabled:opacity-30 flex items-center justify-center"><Minus size={16} /></button>
+              <button onClick={() => removeTeam(i)} disabled={!canEdit || teams.length <= 2} aria-label={`Remove ${teams[i] || 'team'}`} className="w-8 h-8 rounded-full bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 disabled:opacity-30 flex items-center justify-center"><Minus size={16} /></button>
             </div>
           ))}
         </div>
@@ -838,9 +838,9 @@ function SetupView(p) {
           {isAm ? <RoundsHintAm min={Math.min(6, maxRounds)} max={maxRounds} /> : <RoundsHintTeams isDouble={isDouble} max={maxRounds} />}
         </p>
         <div className="flex items-center gap-3">
-          <button onClick={() => stepRounds(-1)} disabled={!canEdit} className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center disabled:opacity-40"><Minus size={16} /></button>
+          <button onClick={() => stepRounds(-1)} disabled={!canEdit} aria-label="Decrease rounds" className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center disabled:opacity-40"><Minus size={16} /></button>
           <div className="text-center"><div className="text-2xl font-bold text-blue-800 tabular-nums">{rounds}</div><div className="text-xs text-slate-400">{t('setup.roundsOf', { max: maxRounds })}</div></div>
-          <button onClick={() => stepRounds(1)} disabled={!canEdit} className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center disabled:opacity-40"><Plus size={16} /></button>
+          <button onClick={() => stepRounds(1)} disabled={!canEdit} aria-label="Increase rounds" className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center disabled:opacity-40"><Plus size={16} /></button>
           {rounds === maxRounds && !isAm && <span className="text-xs text-emerald-600 ml-1">{t('setup.roundsFull')}</span>}
         </div>
       </div>
@@ -1074,7 +1074,7 @@ function SectionTitle({ icon, k, subKey, sub }) {
   const { bi, t } = useT();
   const { primary, secondary } = bi(k);
   const subText = sub ?? (subKey ? t(subKey) : null);
-  return <div className="flex items-center gap-2 text-blue-800">{icon}<div><div className="font-bold leading-tight">{primary} {secondary && <span className="text-xs font-normal text-slate-400 tracking-wide">{secondary}</span>}</div>{subText && <div className="text-xs text-slate-400 font-normal">{subText}</div>}</div></div>;
+  return <div className="flex items-center gap-2 text-blue-800">{icon}<div><h2 className="font-bold leading-tight text-base m-0">{primary} {secondary && <span className="text-xs font-normal text-slate-400 tracking-wide">{secondary}</span>}</h2>{subText && <div className="text-xs text-slate-400 font-normal">{subText}</div>}</div></div>;
 }
 
 function ChampionBlock({ champ, res, runnerUp, third }) {
@@ -1188,7 +1188,7 @@ function StandingsTable({ k, standings, qualifyCount, accent }) {
   const bar = accent === 'orange' ? 'text-orange-600' : accent === 'sky' ? 'text-sky-600' : 'text-blue-700';
   return (
     <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm shadow-slate-300/40 overflow-hidden">
-      <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2"><Medal size={17} className={bar} /><Bi k={k} className="font-semibold" /></div>
+      <h2 className="px-4 py-3 border-b border-slate-100 flex items-center gap-2 text-sm m-0"><Medal size={17} className={bar} /><Bi k={k} className="font-semibold" /></h2>
       <table className="w-full text-sm">
         <thead><tr className="text-slate-400 text-xs"><Th k="th.rank" noSecondary /><Th k="th.team" left /><Th k="th.win" /><Th k="th.loss" /><Th k="th.diff" /><Th k="th.pts" pr /></tr></thead>
         <tbody>

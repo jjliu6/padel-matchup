@@ -161,4 +161,9 @@
     <xhtml:link rel="alternate" hreflang="ja" href="https://padel-matchup.philosophie.ai/ja" />
     <xhtml:link rel="alternate" hreflang="ko" href="https://padel-matchup.philosophie.ai/ko" />
   </url>
+  <url>
+    <loc>https://padel-matchup.philosophie.ai/faq</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>

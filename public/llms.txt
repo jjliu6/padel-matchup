@@ -16,6 +16,7 @@ Padel Matchup helps organizers run padel tournaments end-to-end — generating f
 - [German-only interface](https://padel-matchup.philosophie.ai/de): Deutschsprachige Oberfläche.
 - [Japanese-only interface](https://padel-matchup.philosophie.ai/ja)
 - [Korean-only interface](https://padel-matchup.philosophie.ai/ko)
+- [FAQ](https://padel-matchup.philosophie.ai/faq): Answers on formats (round robin vs Americano vs knockout), scoring, share links, and Excel export.
 - [Source code](https://github.com/jjliu6/padel-matchup): MIT-licensed React + TanStack Start + Supabase codebase.
 
 ## Key features
