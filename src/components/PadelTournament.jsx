@@ -198,7 +198,7 @@ function BiPara({ k, vars }) {
   return <>{primary}{lang === 'bilingual' && <><br /><span className="text-xs text-slate-400">{secondary}</span></>}</>;
 }
 
-export default function PadelTournament({ initialLang = 'bilingual' }) {
+export default function PadelTournament({ initialLang = 'en' }) {
   return (
     <LangProvider lang={initialLang}>
       <PadelTournamentInner />

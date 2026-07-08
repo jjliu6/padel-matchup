@@ -3,8 +3,8 @@ import React, { createContext, useContext } from "react";
 /* ============================================================
  * Language configuration
  *
- * 'bilingual' — Chinese-first with English captions. Default & preferred.
- * 'en'        — English only.
+ * 'en'        — English only. Default (site root "/").
+ * 'bilingual' — Chinese-first with English captions, at "/zh".
  * 'es'        — Spanish only.
  * 'it'        — Italian only.
  * 'fr'        — French only.
@@ -15,8 +15,8 @@ import React, { createContext, useContext } from "react";
  * 'ko'        — Korean only.
  * ============================================================ */
 export const LANGS = [
-  { code: "bilingual", path: "/", label: "中文 / EN", short: "中/EN" },
-  { code: "en", path: "/en", label: "English", short: "EN" },
+  { code: "en", path: "/", label: "English", short: "EN" },
+  { code: "bilingual", path: "/zh", label: "中文 / EN", short: "中/EN" },
   { code: "es", path: "/es", label: "Español", short: "ES" },
   { code: "it", path: "/it", label: "Italiano", short: "IT" },
   { code: "fr", path: "/fr", label: "Français", short: "FR" },
@@ -27,7 +27,7 @@ export const LANGS = [
   { code: "ko", path: "/ko", label: "한국어", short: "KO" },
 ];
 
-export const DEFAULT_LANG = "bilingual";
+export const DEFAULT_LANG = "en";
 
 const LangContext = createContext(DEFAULT_LANG);
 export function LangProvider({ lang, children }) {

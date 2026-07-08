@@ -45,7 +45,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "What languages does the interface support?",
-    a: "Three: a bilingual Chinese/English default at /, an English-only interface at /en, and a Spanish-only interface at /es for pádel communities across Spain and Latin America. Switch anytime from the language menu in the header.",
+    a: "Ten: English by default at /, a bilingual Chinese/English interface at /zh, and single-language interfaces for Spanish (/es), Italian (/it), French (/fr), Portuguese (/pt), Dutch (/nl), German (/de), Japanese (/ja), and Korean (/ko). Switch anytime from the language menu in the header.",
   },
 ];
 
