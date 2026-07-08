@@ -1220,7 +1220,7 @@ function ScoreCard({ aName, bName, res, onSave, onClear, big, defaultSets = 1, r
               <input value={s.a} onChange={(e) => setVal(i, 'a', e.target.value)} disabled={readOnly} inputMode="numeric" placeholder="0" className="w-12 text-center border border-slate-300 rounded-lg py-1.5 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400" />
               <span className="text-slate-300">:</span>
               <input value={s.b} onChange={(e) => setVal(i, 'b', e.target.value)} disabled={readOnly} inputMode="numeric" placeholder="0" className="w-12 text-center border border-slate-300 rounded-lg py-1.5 tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400" />
-              {!readOnly && sets.length > 1 ? <button onClick={() => removeSet(i)} title={t('score.removeSetTooltip')} className="text-slate-300 hover:text-rose-500"><X size={14} /></button> : <span className="w-3.5" />}
+              {!readOnly && sets.length > 1 ? <button onClick={() => removeSet(i)} aria-label={t('score.removeSetTooltip')} title={t('score.removeSetTooltip')} className="text-slate-300 hover:text-rose-500"><X size={14} /></button> : <span className="w-3.5" />}
             </div>
           ))}
           <div className="flex items-center justify-center gap-3 pt-1">
