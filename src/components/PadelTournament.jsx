@@ -796,7 +796,7 @@ function SetupView(p) {
       </div>
 
       <div className={card}>
-        <div className="flex items-center gap-2 mb-3"><LayoutGrid size={18} className="text-blue-700" /><Bi k="setup.format" className="font-semibold" /></div>
+        <h2 className="flex items-center gap-2 mb-3 text-base"><LayoutGrid size={18} className="text-blue-700" /><Bi k="setup.format" className="font-semibold" /></h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <ModeCard active={mode === 'single'} onClick={() => chooseMode('single')} k="setup.modeSingle" descKey="setup.modeSingleDesc" />
           <ModeCard active={mode === 'double'} onClick={() => chooseMode('double')} k="setup.modeDouble" descKey="setup.modeDoubleDesc" />
