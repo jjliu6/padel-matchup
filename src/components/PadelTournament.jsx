@@ -553,15 +553,15 @@ function PadelTournamentInner() {
             </div>
             <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
               <LangSwitcher lang={lang} />
-              {stage !== 'setup' && <button onClick={() => setShowBig(true)} title={t('nav.bigScreenTooltip')} className="flex items-center gap-1 text-sm bg-amber-400 text-blue-900 hover:bg-amber-300 px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold shadow-sm shadow-amber-400/30 transition-colors"><Monitor size={15} /> <NavLabel k="nav.bigScreen" /></button>}
+              {stage !== 'setup' && <button onClick={() => setShowBig(true)} aria-label={t('nav.bigScreenTooltip') || 'Big screen mode'} title={t('nav.bigScreenTooltip')} className="flex items-center gap-1 text-sm bg-amber-400 text-blue-900 hover:bg-amber-300 px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold shadow-sm shadow-amber-400/30 transition-colors"><Monitor size={15} /> <NavLabel k="nav.bigScreen" /></button>}
               {stage !== 'setup' && !readOnly && (
                 cloudTokens?.edit_token
-                  ? <button onClick={() => setShowShare(true)} title={t('nav.shareTooltip')} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Share2 size={15} /> <SyncBadge status={syncStatus} /></button>
-                  : <button onClick={handlePublish} disabled={publishing} title={t('nav.publishTooltip')} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50">{publishing ? <Loader2 size={15} className="animate-spin" /> : <Share2 size={15} />} <NavLabel k="nav.share" hiddenClass="hidden sm:inline" /></button>
+                  ? <button onClick={() => setShowShare(true)} aria-label={t('nav.shareTooltip') || 'Share tournament'} title={t('nav.shareTooltip')} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Share2 size={15} /> <SyncBadge status={syncStatus} /></button>
+                  : <button onClick={handlePublish} disabled={publishing} aria-label={t('nav.publishTooltip') || 'Publish tournament'} title={t('nav.publishTooltip')} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50">{publishing ? <Loader2 size={15} className="animate-spin" /> : <Share2 size={15} />} <NavLabel k="nav.share" hiddenClass="hidden sm:inline" /></button>
               )}
-              {stage !== 'setup' && <button onClick={() => exportToExcel(exportModel, t)} title={t('nav.exportTooltip')} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><FileSpreadsheet size={15} /> <NavLabel k="nav.export" hiddenClass="hidden sm:inline" /></button>}
-              {stage !== 'setup' && <button onClick={goHome} title={t('nav.homeTooltip')} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Home size={15} /> <NavLabel k="nav.home" hiddenClass="hidden sm:inline" /></button>}
-              {!readOnly && <button onClick={() => setConfirmNew(true)} title={t('nav.newTooltip')} className="flex items-center gap-1 text-sm bg-rose-500/90 hover:bg-rose-500 text-white px-2.5 py-1.5 rounded-lg transition-colors"><Plus size={15} /> <NavLabel k="nav.new" hiddenClass="hidden sm:inline" opacityCls="opacity-80" /></button>}
+              {stage !== 'setup' && <button onClick={() => exportToExcel(exportModel, t)} aria-label={t('nav.exportTooltip') || 'Export results to Excel'} title={t('nav.exportTooltip')} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><FileSpreadsheet size={15} /> <NavLabel k="nav.export" hiddenClass="hidden sm:inline" /></button>}
+              {stage !== 'setup' && <button onClick={goHome} aria-label={t('nav.homeTooltip') || 'Back to setup'} title={t('nav.homeTooltip')} className="flex items-center gap-1 text-sm bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg transition-colors"><Home size={15} /> <NavLabel k="nav.home" hiddenClass="hidden sm:inline" /></button>}
+              {!readOnly && <button onClick={() => setConfirmNew(true)} aria-label={t('nav.newTooltip') || 'Start a new tournament'} title={t('nav.newTooltip')} className="flex items-center gap-1 text-sm bg-rose-500/90 hover:bg-rose-500 text-white px-2.5 py-1.5 rounded-lg transition-colors"><Plus size={15} /> <NavLabel k="nav.new" hiddenClass="hidden sm:inline" opacityCls="opacity-80" /></button>}
             </div>
           </div>
         </header>
@@ -796,7 +796,7 @@ function SetupView(p) {
       </div>
 
       <div className={card}>
-        <div className="flex items-center gap-2 mb-3"><LayoutGrid size={18} className="text-blue-700" /><Bi k="setup.format" className="font-semibold" /></div>
+        <h2 className="flex items-center gap-2 mb-3 text-base"><LayoutGrid size={18} className="text-blue-700" /><Bi k="setup.format" className="font-semibold" /></h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <ModeCard active={mode === 'single'} onClick={() => chooseMode('single')} k="setup.modeSingle" descKey="setup.modeSingleDesc" />
           <ModeCard active={mode === 'double'} onClick={() => chooseMode('double')} k="setup.modeDouble" descKey="setup.modeDoubleDesc" />
@@ -822,7 +822,7 @@ function SetupView(p) {
 
       <div className={card}>
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2"><Users size={18} className="text-blue-700" /><span className="font-semibold">{unit}</span><span className="text-sm font-normal text-slate-500">· {teams.length}</span></div>
+          <h2 className="flex items-center gap-2 text-base m-0"><Users size={18} className="text-blue-700" /><span className="font-semibold">{unit}</span><span className="text-sm font-normal text-slate-500">· {teams.length}</span></h2>
           <button onClick={addTeam} disabled={!canEdit} className="flex items-center gap-1 text-sm text-blue-700 hover:text-blue-900 font-medium disabled:opacity-40 disabled:hover:text-blue-700"><Plus size={16} /> {t('setup.add')}</button>
         </div>
         <div className="grid sm:grid-cols-2 gap-2">
@@ -844,7 +844,7 @@ function SetupView(p) {
       </div>
 
       <div className={card}>
-        <div className="flex items-center gap-2 mb-1"><ListOrdered size={18} className="text-blue-700" /><Bi k={isAm ? 'setup.roundsPlayers' : 'setup.roundsTeams'} className="font-semibold" /></div>
+        <h2 className="flex items-center gap-2 mb-1 text-base"><ListOrdered size={18} className="text-blue-700" /><Bi k={isAm ? 'setup.roundsPlayers' : 'setup.roundsTeams'} className="font-semibold" /></h2>
         <p className="text-sm text-slate-500 mb-3">
           {isAm ? <RoundsHintAm min={Math.min(6, maxRounds)} max={maxRounds} /> : <RoundsHintTeams isDouble={isDouble} max={maxRounds} />}
         </p>

@@ -18,7 +18,6 @@ import { Route as ItRouteImport } from './routes/it'
 import { Route as FrRouteImport } from './routes/fr'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EsRouteImport } from './routes/es'
-import { Route as EnRouteImport } from './routes/en'
 import { Route as DeRouteImport } from './routes/de'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GuideRoundRobinRouteImport } from './routes/guide.round-robin'
@@ -70,11 +69,6 @@ const EsRoute = EsRouteImport.update({
   path: '/es',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EnRoute = EnRouteImport.update({
-  id: '/en',
-  path: '/en',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DeRoute = DeRouteImport.update({
   id: '/de',
   path: '/de',
@@ -104,7 +98,6 @@ const GuideAmericanoRoute = GuideAmericanoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/de': typeof DeRoute
-  '/en': typeof EnRoute
   '/es': typeof EsRoute
   '/faq': typeof FaqRoute
   '/fr': typeof FrRoute
@@ -121,7 +114,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/de': typeof DeRoute
-  '/en': typeof EnRoute
   '/es': typeof EsRoute
   '/faq': typeof FaqRoute
   '/fr': typeof FrRoute
@@ -139,7 +131,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/de': typeof DeRoute
-  '/en': typeof EnRoute
   '/es': typeof EsRoute
   '/faq': typeof FaqRoute
   '/fr': typeof FrRoute
@@ -158,7 +149,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/de'
-    | '/en'
     | '/es'
     | '/faq'
     | '/fr'
@@ -175,7 +165,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/de'
-    | '/en'
     | '/es'
     | '/faq'
     | '/fr'
@@ -192,7 +181,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/de'
-    | '/en'
     | '/es'
     | '/faq'
     | '/fr'
@@ -210,7 +198,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DeRoute: typeof DeRoute
-  EnRoute: typeof EnRoute
   EsRoute: typeof EsRoute
   FaqRoute: typeof FaqRoute
   FrRoute: typeof FrRoute
@@ -290,13 +277,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/en': {
-      id: '/en'
-      path: '/en'
-      fullPath: '/en'
-      preLoaderRoute: typeof EnRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/de': {
       id: '/de'
       path: '/de'
@@ -338,7 +318,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DeRoute: DeRoute,
-  EnRoute: EnRoute,
   EsRoute: EsRoute,
   FaqRoute: FaqRoute,
   FrRoute: FrRoute,
@@ -355,13 +334,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

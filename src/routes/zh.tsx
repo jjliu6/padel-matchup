@@ -3,9 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import PadelTournament from "@/components/PadelTournament.jsx";
 
 const SITE = "https://padel-matchup.philosophie.ai";
-const TITLE = "Padel Matchup — Tournament Manager";
+const TITLE = "Padel 匹克赛事管理器 — 循环赛 / Americano / 淘汰赛";
 const DESC =
-  "Run padel tournaments end-to-end: group stage, Americano rotations, knockout brackets, live standings, big-screen mode, and Excel export.";
+  "免费在线管理匹克（Padel）比赛：小组循环赛、Americano 轮转、淘汰赛对阵、实时积分榜、大屏模式和 Excel 导出，一站搞定。";
 const OG_IMAGE = `${SITE}/og-cover.jpg`;
 
 // SoftwareApplication schema so search and AI answer engines can cite what
