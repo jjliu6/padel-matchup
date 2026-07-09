@@ -844,7 +844,7 @@ function SetupView(p) {
       </div>
 
       <div className={card}>
-        <div className="flex items-center gap-2 mb-1"><ListOrdered size={18} className="text-blue-700" /><Bi k={isAm ? 'setup.roundsPlayers' : 'setup.roundsTeams'} className="font-semibold" /></div>
+        <h2 className="flex items-center gap-2 mb-1 text-base"><ListOrdered size={18} className="text-blue-700" /><Bi k={isAm ? 'setup.roundsPlayers' : 'setup.roundsTeams'} className="font-semibold" /></h2>
         <p className="text-sm text-slate-500 mb-3">
           {isAm ? <RoundsHintAm min={Math.min(6, maxRounds)} max={maxRounds} /> : <RoundsHintTeams isDouble={isDouble} max={maxRounds} />}
         </p>
