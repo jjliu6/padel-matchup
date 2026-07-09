@@ -104,6 +104,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:site_name", content: "Padel Matchup" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "google-site-verification", content: "XJ1K341jR9TGE1pgGnLPQrDZypKiLyPv7mukhyMlIEo" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
