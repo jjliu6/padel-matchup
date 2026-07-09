@@ -45,7 +45,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "What languages does the interface support?",
-    a: "Ten: English by default at /, a bilingual Chinese/English interface at /zh, and single-language interfaces for Spanish (/es), Italian (/it), French (/fr), Portuguese (/pt), Dutch (/nl), German (/de), Japanese (/ja), and Korean (/ko). Switch anytime from the language menu in the header.",
+    a: "Eleven: English by default at /, a bilingual Chinese/English interface at /zh, a Chinese-only interface at /zh-cn, and single-language interfaces for Spanish (/es), Italian (/it), French (/fr), Portuguese (/pt), Dutch (/nl), German (/de), Japanese (/ja), and Korean (/ko). Switch anytime from the language menu in the header.",
   },
 ];
 

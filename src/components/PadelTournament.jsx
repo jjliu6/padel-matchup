@@ -1301,7 +1301,7 @@ function BigScreen({ title, mode, groups, bracket, results, amSchedule, amResult
       return (
         <div className="grid sm:grid-cols-2 gap-3">
           {rd.courts.map((c, ci) => <BigCourt key={ci} court={c} res={amResults[`${ri2}-${ci}`]} label={t('big.court', { n: ci + 1 })} />)}
-          {rd.byes.length > 0 && <div className="sm:col-span-2 text-amber-200 text-sm flex items-center gap-2 flex-wrap"><Coffee size={16} /> {t('big.byeLine', { names: rd.byes.join(lang === 'bilingual' ? '、' : ', ') })}</div>}
+          {rd.byes.length > 0 && <div className="sm:col-span-2 text-amber-200 text-sm flex items-center gap-2 flex-wrap"><Coffee size={16} /> {t('big.byeLine', { names: rd.byes.join(lang === 'bilingual' || lang === 'zh' ? '、' : ', ') })}</div>}
         </div>
       );
     }

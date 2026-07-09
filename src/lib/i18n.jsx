@@ -5,6 +5,7 @@ import React, { createContext, useContext } from "react";
  *
  * 'en'        — English only. Default (site root "/").
  * 'bilingual' — Chinese-first with English captions, at "/zh".
+ * 'zh'        — Chinese only, no English captions, at "/zh-cn".
  * 'es'        — Spanish only.
  * 'it'        — Italian only.
  * 'fr'        — French only.
@@ -17,6 +18,7 @@ import React, { createContext, useContext } from "react";
 export const LANGS = [
   { code: "en", path: "/", label: "English", short: "EN" },
   { code: "bilingual", path: "/zh", label: "中文 / EN", short: "中/EN" },
+  { code: "zh", path: "/zh-cn", label: "中文", short: "中文" },
   { code: "es", path: "/es", label: "Español", short: "ES" },
   { code: "it", path: "/it", label: "Italiano", short: "IT" },
   { code: "fr", path: "/fr", label: "Français", short: "FR" },
