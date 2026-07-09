@@ -822,7 +822,7 @@ function SetupView(p) {
 
       <div className={card}>
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2"><Users size={18} className="text-blue-700" /><span className="font-semibold">{unit}</span><span className="text-sm font-normal text-slate-500">· {teams.length}</span></div>
+          <h2 className="flex items-center gap-2 text-base m-0"><Users size={18} className="text-blue-700" /><span className="font-semibold">{unit}</span><span className="text-sm font-normal text-slate-500">· {teams.length}</span></h2>
           <button onClick={addTeam} disabled={!canEdit} className="flex items-center gap-1 text-sm text-blue-700 hover:text-blue-900 font-medium disabled:opacity-40 disabled:hover:text-blue-700"><Plus size={16} /> {t('setup.add')}</button>
         </div>
         <div className="grid sm:grid-cols-2 gap-2">
