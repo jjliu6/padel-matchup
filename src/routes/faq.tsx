@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 const SITE = "https://padel-matchup.philosophie.ai";
-const TITLE = "Padel Tournament FAQ — Formats, Scoring, Americano vs Round Robin";
+const TITLE = "Padel Tournament FAQ — Formats & Scoring";
 const DESC =
   "Answers to common questions about running a padel tournament: round robin vs Americano vs knockout, scoring, group stage rules, share links, and Excel export.";
 const OG_IMAGE = `${SITE}/og-cover.jpg`;
