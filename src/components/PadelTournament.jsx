@@ -595,6 +595,13 @@ function PadelTournamentInner() {
         <footer className="max-w-5xl mx-auto px-4 pb-8 pt-2 text-center">
           <div className="text-xs text-slate-400">
             Created by <a href="https://philosophie.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 font-medium underline decoration-blue-200 underline-offset-2">Eric Liu (Philosophie AI)</a>
+            <span className="mx-2 text-slate-300">·</span>
+            <a
+              href="mailto:junjie@philosophie.ai?subject=Padel%20Matchup%20Feedback&body=Hi%20Eric%2C%0A%0A"
+              className="text-blue-600 hover:text-blue-800 font-medium underline decoration-blue-200 underline-offset-2"
+            >
+              Feedback / 反馈
+            </a>
           </div>
         </footer>
       </div>
