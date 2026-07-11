@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ZhCnRouteImport } from './routes/zh-cn'
 import { Route as ZhRouteImport } from './routes/zh'
 import { Route as PtRouteImport } from './routes/pt'
 import { Route as NlRouteImport } from './routes/nl'
@@ -24,6 +25,11 @@ import { Route as GuideRoundRobinRouteImport } from './routes/guide.round-robin'
 import { Route as GuideKnockoutRouteImport } from './routes/guide.knockout'
 import { Route as GuideAmericanoRouteImport } from './routes/guide.americano'
 
+const ZhCnRoute = ZhCnRouteImport.update({
+  id: '/zh-cn',
+  path: '/zh-cn',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ZhRoute = ZhRouteImport.update({
   id: '/zh',
   path: '/zh',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/nl': typeof NlRoute
   '/pt': typeof PtRoute
   '/zh': typeof ZhRoute
+  '/zh-cn': typeof ZhCnRoute
   '/guide/americano': typeof GuideAmericanoRoute
   '/guide/knockout': typeof GuideKnockoutRoute
   '/guide/round-robin': typeof GuideRoundRobinRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/nl': typeof NlRoute
   '/pt': typeof PtRoute
   '/zh': typeof ZhRoute
+  '/zh-cn': typeof ZhCnRoute
   '/guide/americano': typeof GuideAmericanoRoute
   '/guide/knockout': typeof GuideKnockoutRoute
   '/guide/round-robin': typeof GuideRoundRobinRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/nl': typeof NlRoute
   '/pt': typeof PtRoute
   '/zh': typeof ZhRoute
+  '/zh-cn': typeof ZhCnRoute
   '/guide/americano': typeof GuideAmericanoRoute
   '/guide/knockout': typeof GuideKnockoutRoute
   '/guide/round-robin': typeof GuideRoundRobinRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/nl'
     | '/pt'
     | '/zh'
+    | '/zh-cn'
     | '/guide/americano'
     | '/guide/knockout'
     | '/guide/round-robin'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/nl'
     | '/pt'
     | '/zh'
+    | '/zh-cn'
     | '/guide/americano'
     | '/guide/knockout'
     | '/guide/round-robin'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '/nl'
     | '/pt'
     | '/zh'
+    | '/zh-cn'
     | '/guide/americano'
     | '/guide/knockout'
     | '/guide/round-robin'
@@ -207,6 +219,7 @@ export interface RootRouteChildren {
   NlRoute: typeof NlRoute
   PtRoute: typeof PtRoute
   ZhRoute: typeof ZhRoute
+  ZhCnRoute: typeof ZhCnRoute
   GuideAmericanoRoute: typeof GuideAmericanoRoute
   GuideKnockoutRoute: typeof GuideKnockoutRoute
   GuideRoundRobinRoute: typeof GuideRoundRobinRoute
@@ -214,6 +227,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/zh-cn': {
+      id: '/zh-cn'
+      path: '/zh-cn'
+      fullPath: '/zh-cn'
+      preLoaderRoute: typeof ZhCnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/zh': {
       id: '/zh'
       path: '/zh'
@@ -327,6 +347,7 @@ const rootRouteChildren: RootRouteChildren = {
   NlRoute: NlRoute,
   PtRoute: PtRoute,
   ZhRoute: ZhRoute,
+  ZhCnRoute: ZhCnRoute,
   GuideAmericanoRoute: GuideAmericanoRoute,
   GuideKnockoutRoute: GuideKnockoutRoute,
   GuideRoundRobinRoute: GuideRoundRobinRoute,

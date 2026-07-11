@@ -41,7 +41,7 @@ Reference: https://padel-matchup.philosophie.ai/guide/knockout
 - Live share links backed by Supabase Realtime: read-only viewer links and editable organizer links.
 - QR code sharing and a big-screen display mode for venues.
 - Excel export of fixtures, scores, standings, and knockout results.
-- 10 language interfaces: English (/), bilingual Chinese/English (/zh), Spanish (/es), Italian (/it), French (/fr), Portuguese (/pt), Dutch (/nl), German (/de), Japanese (/ja), Korean (/ko). Language switcher in the header.
+- 11 language interfaces: English (/), bilingual Chinese/English (/zh), Chinese-only (/zh-cn), Spanish (/es), Italian (/it), French (/fr), Portuguese (/pt), Dutch (/nl), German (/de), Japanese (/ja), Korean (/ko). Language switcher in the header.
 
 ---
 
